@@ -26,3 +26,25 @@ def test_parse_bill_text():
     assert bill.tax == 75.0
     assert bill.service_charge == 30.0
     assert bill.total == 855.0
+
+
+def test_confidence_scores():
+    text = """
+    Margherita Pizza 2 450.00
+    Subtotal 450.00
+    Tax 45.00
+    Total 495.00
+    """
+
+    bill = parse_bill_text(text)
+
+    item = bill.items[0]
+
+    assert 0.0 <= item.name_confidence <= 1.0
+    assert 0.0 <= item.quantity_confidence <= 1.0
+    assert 0.0 <= item.price_confidence <= 1.0
+    assert 0.0 <= item.confidence <= 1.0
+
+    assert item.confidence > 0.0
+    assert bill.total_confidence > 0.0
+    assert 0.0 <= bill.confidence <= 1.0
