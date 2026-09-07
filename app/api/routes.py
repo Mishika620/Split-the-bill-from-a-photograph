@@ -8,6 +8,7 @@ from app.models.bill import Bill
 from app.services.ocr import extract_text
 from app.services.parser import parse_bill_text
 from app.services.validator import validate_bill
+from app.services.calculator import calculate_split
 
 
 router = APIRouter()
@@ -16,6 +17,16 @@ router = APIRouter()
 class ReviewResponse(BaseModel):
     bill: Bill
     validation: dict
+
+
+class SplitRequest(BaseModel):
+    bill: Bill
+    people: list[dict]
+
+
+class SplitResponse(BaseModel):
+    results: list[dict]
+    total: float
 
 
 @router.post("/extract")
@@ -88,4 +99,68 @@ def review_bill(bill: Bill):
     return ReviewResponse(
         bill=bill,
         validation=validation_result.__dict__,
+    )
+
+
+@router.post(
+    "/split",
+    response_model=SplitResponse,
+)
+def split_bill(request: SplitRequest):
+    """
+    Calculate each person's share of the bill
+    according to actual item consumption.
+    """
+
+    if not request.people:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one person is required.",
+        )
+
+    # Make sure every bill item has an assignment.
+    unassigned_items = [
+        item.name
+        for item in request.bill.items
+        if not item.assigned_to
+    ]
+
+    if unassigned_items:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "The following items are not assigned: "
+                + ", ".join(unassigned_items)
+            ),
+        )
+
+    results = calculate_split(
+        request.bill,
+        request.people,
+    )
+
+    result_data = [
+        {
+            "person_id": result.person_id,
+            "person_name": result.person_name,
+            "item_total": result.item_total,
+            "tax": result.tax,
+            "service_charge": result.service_charge,
+            "discount": result.discount,
+            "final_total": result.final_total,
+        }
+        for result in results
+    ]
+
+    total = round(
+        sum(
+            result["final_total"]
+            for result in result_data
+        ),
+        2,
+    )
+
+    return SplitResponse(
+        results=result_data,
+        total=total,
     )
