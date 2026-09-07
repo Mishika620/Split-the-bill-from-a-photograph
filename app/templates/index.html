@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>SplitBill — Smart Bill Splitting</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/style.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-shell">
+
+
+    <!-- ================================================= -->
+    <!-- SIDEBAR -->
+    <!-- ================================================= -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-mark">
+                <span>₹</span>
+            </div>
+
+            <div class="brand-text">
+
+                <strong>SplitBill</strong>
+
+                <span>Smart bill splitting</span>
+
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-label">
+            WORKSPACE
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a
+                href="#"
+                class="nav-item active"
+            >
+
+                <span class="nav-icon">⌂</span>
+
+                <span>Overview</span>
+
+            </a>
+
+
+            <a
+                href="#uploadSection"
+                class="nav-item"
+            >
+
+                <span class="nav-icon">↑</span>
+
+                <span>Upload bill</span>
+
+            </a>
+
+
+            <a
+                href="#reviewSection"
+                class="nav-item"
+            >
+
+                <span class="nav-icon">✓</span>
+
+                <span>Review items</span>
+
+            </a>
+
+
+            <a
+                href="#peopleSection"
+                class="nav-item"
+            >
+
+                <span class="nav-icon">♙</span>
+
+                <span>People</span>
+
+            </a>
+
+        </nav>
+
+
+        <div class="sidebar-footer">
+
+            <div class="secure-card">
+
+                <div class="secure-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong>
+                        Human in the loop
+                    </strong>
+
+                    <p>
+                        Review every OCR result
+                        before splitting.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="version">
+                SplitBill v1.0
+            </div>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- ================================================= -->
+    <!-- MAIN -->
+    <!-- ================================================= -->
+
+    <main class="main-content">
+
+
+        <!-- ================================================= -->
+        <!-- TOP BAR -->
+        <!-- ================================================= -->
+
+        <header class="topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Workspace <span>/</span> Bill Splitter
+                </div>
+
+                <h1>
+                    Split your bill,
+                    <span>without the awkward math.</span>
+                </h1>
+
+                <p>
+                    Photograph → Review → Assign → Split
+                </p>
+
+            </div>
+
+
+            <div class="system-status">
+
+                <span class="status-pulse"></span>
+
+                <div>
+
+                    <strong>
+                        System ready
+                    </strong>
+
+                    <small>
+                        OCR engine online
+                    </small>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- ================================================= -->
+        <!-- WORKFLOW -->
+        <!-- ================================================= -->
+
+        <section class="workflow-card">
+
+            <div class="workflow-progress"></div>
+
+
+            <div class="workflow-step active">
+
+                <div class="workflow-number">
+                    01
+                </div>
+
+                <div>
+
+                    <strong>
+                        Upload
+                    </strong>
+
+                    <span>
+                        Photograph your bill
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="workflow-connector"></div>
+
+
+            <div class="workflow-step">
+
+                <div class="workflow-number">
+                    02
+                </div>
+
+                <div>
+
+                    <strong>
+                        Review
+                    </strong>
+
+                    <span>
+                        Confirm extracted data
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="workflow-connector"></div>
+
+
+            <div class="workflow-step">
+
+                <div class="workflow-number">
+                    03
+                </div>
+
+                <div>
+
+                    <strong>
+                        Assign
+                    </strong>
+
+                    <span>
+                        Tell us who ate what
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="workflow-connector"></div>
+
+
+            <div class="workflow-step">
+
+                <div class="workflow-number">
+                    04
+                </div>
+
+                <div>
+
+                    <strong>
+                        Split
+                    </strong>
+
+                    <span>
+                        Get the final amounts
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================================= -->
+        <!-- UPLOAD HERO -->
+        <!-- ================================================= -->
+
+        <section
+            class="upload-hero"
+            id="uploadSection"
+        >
+
+            <div class="upload-copy">
+
+                <div class="mini-label">
+                    STEP 01 · IMAGE TO DATA
+                </div>
+
+                <h2>
+                    Turn a receipt photo
+                    <br>
+                    into a <em>smart bill.</em>
+                </h2>
+
+                <p>
+                    Our OCR pipeline extracts items, quantities,
+                    prices, taxes and totals from your restaurant
+                    bill. You review everything before the split.
+                </p>
+
+
+                <div class="feature-pills">
+
+                    <span>
+                        ✦ OCR extraction
+                    </span>
+
+                    <span>
+                        ✦ Confidence scoring
+                    </span>
+
+                    <span>
+                        ✦ Human review
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="upload-box">
+
+                <div class="upload-box-inner">
+
+                    <div class="receipt-icon">
+                        🧾
+                    </div>
+
+                    <h3>
+                        Drop your bill here
+                    </h3>
+
+                    <p>
+                        or choose an image from your device
+                    </p>
+
+
+                    <input
+                        type="file"
+                        id="billImage"
+                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                        hidden
+                    >
+
+
+                    <button
+                        type="button"
+                        id="uploadButton"
+                        class="primary-button"
+                    >
+
+                        <span>↑</span>
+
+                        Choose bill image
+
+                    </button>
+
+
+                    <small>
+                        JPG · PNG · WEBP
+                    </small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================================= -->
+        <!-- REVIEW HEADER -->
+        <!-- ================================================= -->
+
+        <div
+            class="section-title-row"
+            id="reviewSection"
+        >
+
+            <div>
+
+                <div class="mini-label">
+                    STEP 02 · HUMAN REVIEW
+                </div>
+
+                <h2>
+                    Extracted bill details
+                </h2>
+
+                <p>
+                    Check the values detected from your photograph.
+                    Everything is editable.
+                </p>
+
+            </div>
+
+
+            <div class="confidence-card">
+
+                <div class="confidence-ring">
+
+                    <span class="confidence-dot"></span>
+
+                </div>
+
+                <div>
+
+                    <small>
+                        Overall confidence
+                    </small>
+
+                    <strong id="overallConfidence">
+                        94%
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ================================================= -->
+        <!-- ITEMS CARD -->
+        <!-- ================================================= -->
+
+        <section class="data-card">
+
+            <div class="data-card-header">
+
+                <div>
+
+                    <h3>
+                        Detected items
+                    </h3>
+
+                    <span id="itemCount">
+                        0 items detected
+                    </span>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="addItemButton"
+                    class="ghost-button"
+                >
+
+                    + Add item
+
+                </button>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table class="items-table">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                ITEM
+                            </th>
+
+                            <th>
+                                QTY
+                            </th>
+
+                            <th>
+                                UNIT PRICE
+                            </th>
+
+                            <th>
+                                TOTAL
+                            </th>
+
+                            <th>
+                                ATE BY
+                            </th>
+
+                            <th>
+                                CONFIDENCE
+                            </th>
+
+                            <th>
+                                &nbsp;
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="itemsBody">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <div class="table-bottom">
+
+                <span>
+                    ✦ Values are extracted automatically
+                    and can be corrected before splitting.
+                </span>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================================= -->
+        <!-- SUMMARY GRID -->
+        <!-- ================================================= -->
+
+        <section class="summary-grid">
+
+
+            <!-- BILL SUMMARY -->
+
+            <div class="summary-card">
+
+                <div class="card-heading">
+
+                    <div>
+
+                        <span>
+                            BILL OVERVIEW
+                        </span>
+
+                        <h3>
+                            Amount breakdown
+                        </h3>
+
+                    </div>
+
+                    <div class="card-heading-icon">
+                        ₹
+                    </div>
+
+                </div>
+
+
+                <div class="amount-list">
+
+                    <div class="amount-row">
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <strong id="subtotal">
+                            ₹750.00
+                        </strong>
+
+                    </div>
+
+
+                    <div class="amount-row">
+
+                        <span>
+                            Tax
+                        </span>
+
+                        <strong id="tax">
+                            ₹75.00
+                        </strong>
+
+                    </div>
+
+
+                    <div class="amount-row">
+
+                        <span>
+                            Service charge
+                        </span>
+
+                        <strong id="serviceCharge">
+                            ₹30.00
+                        </strong>
+
+                    </div>
+
+
+                    <div class="amount-row">
+
+                        <span>
+                            Discount
+                        </span>
+
+                        <strong
+                            id="discount"
+                            class="discount-value"
+                        >
+                            -₹0.00
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="total-box">
+
+                    <div>
+
+                        <span>
+                            FINAL TOTAL
+                        </span>
+
+                        <strong id="total">
+                            ₹855.00
+                        </strong>
+
+                    </div>
+
+                    <div class="total-arrow">
+                        →
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- VALIDATION -->
+
+            <div
+                id="validationCard"
+                class="validation-card"
+            >
+
+                <div class="validation-top">
+
+                    <div class="validation-symbol">
+                        ✓
+                    </div>
+
+                    <span>
+                        ARITHMETIC CHECK
+                    </span>
+
+                </div>
+
+
+                <h3 id="validationTitle">
+                    Ready for validation
+                </h3>
+
+
+                <p id="validationMessage">
+                    Check whether the extracted item totals,
+                    subtotal and printed final amount are
+                    mathematically consistent.
+                </p>
+
+
+                <button
+                    type="button"
+                    id="validateButton"
+                    class="validation-button"
+                >
+
+                    Validate bill
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================================= -->
+        <!-- PEOPLE SECTION -->
+        <!-- ================================================= -->
+
+        <section
+            class="people-section"
+            id="peopleSection"
+        >
+
+            <div class="people-header">
+
+                <div>
+
+                    <div class="mini-label">
+                        STEP 03 · ASSIGNMENT
+                    </div>
+
+                    <h2>
+                        Who shared the meal?
+                    </h2>
+
+                    <p>
+                        Add everyone at the table, then assign
+                        each item to the people who consumed it.
+                    </p>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    id="addPersonButton"
+                    class="primary-button"
+                >
+
+                    + Add member
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="peopleList"
+                class="people-list"
+            >
+
+            </div>
+
+
+            <div class="assignment-info">
+
+                <div class="assignment-info-icon">
+                    ✦
+                </div>
+
+                <div>
+
+                    <strong>
+                        Fair splitting
+                    </strong>
+
+                    <p>
+                        Individual items are charged to the
+                        people who consumed them. Shared items
+                        are divided between everyone assigned.
+                        Tax and service charge will follow each
+                        person's actual consumption.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================================= -->
+        <!-- FINAL ACTION BAR -->
+        <!-- ================================================= -->
+
+        <section class="final-action">
+
+            <div class="final-status">
+
+                <div class="final-status-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <strong>
+                        Ready to calculate
+                    </strong>
+
+                    <span>
+                        Review your items and assignments first.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div class="final-actions">
+
+                <button
+                    type="button"
+                    id="recalculateButton"
+                    class="ghost-button large"
+                >
+
+                    ↻ Recalculate
+
+                </button>
+
+
+                <button
+                    type="button"
+                    id="splitButton"
+                    class="primary-button large"
+                >
+
+                    Split bill
+
+                    <span>
+                        →
+                    </span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================================================= -->
+        <!-- FOOTER -->
+        <!-- ================================================= -->
+
+        <footer class="page-footer">
+
+            <span>
+                SplitBill
+            </span>
+
+            <span>
+                OCR-assisted · Human-reviewed ·
+                Consumption-based splitting
+            </span>
+
+        </footer>
+
+
+    </main>
+
+</div>
+
+
+
+<!-- ================================================= -->
+<!-- TOAST -->
+<!-- ================================================= -->
+
+<div
+    id="toast"
+    class="toast"
+>
+</div>
+
+
+
+<script
+    src="/static/js/app.js"
+></script>
+
+
+</body>
+
+</html>
