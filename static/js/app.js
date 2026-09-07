@@ -378,6 +378,12 @@ function renderItems() {
                             <input
                                 type="checkbox"
                                 data-everyone="${index}"
+                                ${
+                                    people.length > 0 &&
+                                    item.assigned_to.length === people.length
+                                        ? "checked"
+                                        : ""
+                                }
                             >
 
                             <span>
@@ -517,10 +523,8 @@ function handleEdit(event) {
     const input =
         event.target;
 
-
     const index =
         Number(input.dataset.index);
-
 
     const field =
         input.dataset.field;
@@ -1614,9 +1618,6 @@ function removePerson(event) {
         );
 
 
-    // Remove deleted person from
-    // every item's assignments.
-
     bill.items.forEach(item => {
 
         if (
@@ -1691,7 +1692,7 @@ if (addPersonButton) {
 
 
 // =====================================================
-// SPLIT BUTTON
+// SPLIT BILL
 // =====================================================
 
 const splitButton =
@@ -1704,7 +1705,7 @@ if (splitButton) {
 
     splitButton.addEventListener(
         "click",
-        () => {
+        async () => {
 
             const unassignedItems =
                 bill.items.filter(
@@ -1727,12 +1728,305 @@ if (splitButton) {
             }
 
 
-            showToast(
-                "Assignments ready ✓"
-            );
+            if (people.length === 0) {
+
+                showToast(
+                    "Add at least one member."
+                );
+
+                return;
+
+            }
+
+
+            splitButton.disabled = true;
+
+            const originalText =
+                splitButton.textContent;
+
+            splitButton.textContent =
+                "Calculating...";
+
+
+            try {
+
+                recalculateBill();
+
+
+                const response =
+                    await fetch(
+                        "/split",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    bill: bill,
+                                    people: people
+                                })
+                        }
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        result.detail ||
+                        "Could not split the bill."
+                    );
+
+                }
+
+
+                renderSplitResults(
+                    result
+                );
+
+
+                showToast(
+                    "Bill split successfully ✓"
+                );
+
+
+            } catch (error) {
+
+                console.error(error);
+
+
+                showToast(
+                    error.message ||
+                    "Could not calculate split."
+                );
+
+            } finally {
+
+                splitButton.disabled = false;
+
+                splitButton.textContent =
+                    originalText;
+
+            }
 
         }
     );
+
+}
+
+
+// =====================================================
+// SPLIT RESULTS
+// =====================================================
+
+function renderSplitResults(data) {
+
+    let resultsContainer =
+        document.getElementById(
+            "splitResults"
+        );
+
+
+    if (!resultsContainer) {
+
+        resultsContainer =
+            document.createElement(
+                "section"
+            );
+
+        resultsContainer.id =
+            "splitResults";
+
+        resultsContainer.className =
+            "split-results-section";
+
+
+        const finalActionBar =
+            document.querySelector(
+                ".final-action"
+            );
+
+
+        if (finalActionBar) {
+
+            finalActionBar.before(
+                resultsContainer
+            );
+
+        } else {
+
+            document.body.appendChild(
+                resultsContainer
+            );
+
+        }
+
+    }
+
+
+    const results =
+        data.results || [];
+
+
+    resultsContainer.innerHTML = `
+
+        <div class="section-heading">
+
+            <div>
+
+                <span class="section-eyebrow">
+                    FINAL SPLIT
+                </span>
+
+                <h2>
+                    Everyone's share
+                </h2>
+
+                <p>
+                    Amounts are calculated from actual item consumption.
+                    Tax and service charge are distributed proportionally.
+                </p>
+
+            </div>
+
+            <div class="split-total">
+
+                <span>
+                    BILL TOTAL
+                </span>
+
+                <strong>
+                    ${formatMoney(data.total)}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="split-results-grid">
+
+            ${results.map(result => `
+
+                <article class="split-person-card">
+
+                    <div class="split-person-header">
+
+                        <div class="person-avatar">
+                            ${escapeHtml(
+                                getInitial(
+                                    result.person_name
+                                )
+                            )}
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                ${escapeHtml(
+                                    result.person_name
+                                )}
+                            </h3>
+
+                            <span>
+                                Final amount
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="split-breakdown">
+
+                        <div>
+                            <span>
+                                Items consumed
+                            </span>
+
+                            <strong>
+                                ${formatMoney(
+                                    result.item_total
+                                )}
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>
+                                Tax
+                            </span>
+
+                            <strong>
+                                ${formatMoney(
+                                    result.tax
+                                )}
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>
+                                Service charge
+                            </span>
+
+                            <strong>
+                                ${formatMoney(
+                                    result.service_charge
+                                )}
+                            </strong>
+                        </div>
+
+
+                        <div>
+                            <span>
+                                Discount
+                            </span>
+
+                            <strong>
+                                -${formatMoney(
+                                    result.discount
+                                )}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="split-final">
+
+                        <span>
+                            YOU PAY
+                        </span>
+
+                        <strong>
+                            ${formatMoney(
+                                result.final_total
+                            )}
+                        </strong>
+
+                    </div>
+
+                </article>
+
+            `).join("")}
+
+        </div>
+
+    `;
+
+
+    resultsContainer.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
 }
 
