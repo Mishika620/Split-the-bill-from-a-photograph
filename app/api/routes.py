@@ -29,6 +29,10 @@ class SplitResponse(BaseModel):
     total: float
 
 
+# ---------------------------------------------------------
+# EXTRACT BILL
+# ---------------------------------------------------------
+
 @router.post("/extract")
 async def extract_bill(
     file: UploadFile = File(...)
@@ -42,12 +46,16 @@ async def extract_bill(
         "image/jpeg",
         "image/png",
         "image/jpg",
+        "image/webp",
     }
 
     if file.content_type not in allowed_types:
         raise HTTPException(
             status_code=400,
-            detail="Only JPG and PNG images are supported.",
+            detail=(
+                "Only JPG, PNG and WEBP images "
+                "are supported."
+            ),
         )
 
     file_bytes = await file.read()
@@ -58,7 +66,9 @@ async def extract_bill(
             detail="Uploaded image is empty.",
         )
 
-    suffix = Path(file.filename or ".jpg").suffix
+    suffix = Path(
+        file.filename or ".jpg"
+    ).suffix
 
     with tempfile.NamedTemporaryFile(
         delete=False,
@@ -70,9 +80,14 @@ async def extract_bill(
         temp_path = temp_file.name
 
     try:
-        extracted_text = extract_text(temp_path)
 
-        bill = parse_bill_text(extracted_text)
+        extracted_text = extract_text(
+            temp_path
+        )
+
+        bill = parse_bill_text(
+            extracted_text
+        )
 
         return {
             "bill": bill,
@@ -80,10 +95,15 @@ async def extract_bill(
         }
 
     finally:
+
         Path(temp_path).unlink(
             missing_ok=True
         )
 
+
+# ---------------------------------------------------------
+# HUMAN REVIEW / VALIDATION
+# ---------------------------------------------------------
 
 @router.post(
     "/review",
@@ -94,7 +114,9 @@ def review_bill(bill: Bill):
     Validate a corrected bill before splitting.
     """
 
-    validation_result = validate_bill(bill)
+    validation_result = validate_bill(
+        bill
+    )
 
     return ReviewResponse(
         bill=bill,
@@ -102,23 +124,65 @@ def review_bill(bill: Bill):
     )
 
 
+# ---------------------------------------------------------
+# SPLIT BILL
+# ---------------------------------------------------------
+
 @router.post(
     "/split",
     response_model=SplitResponse,
 )
-def split_bill(request: SplitRequest):
+def split_bill(
+    request: SplitRequest
+):
     """
-    Calculate each person's share of the bill
-    according to actual item consumption.
+    Calculate each person's share of the bill.
+
+    The bill must pass arithmetic validation
+    before the split calculation is performed.
     """
 
+    # -------------------------------------------------
+    # 1. People validation
+    # -------------------------------------------------
+
     if not request.people:
+
         raise HTTPException(
             status_code=400,
             detail="At least one person is required.",
         )
 
-    # Make sure every bill item has an assignment.
+    # -------------------------------------------------
+    # 2. Validate unique person IDs
+    # -------------------------------------------------
+
+    person_ids = [
+        person.get("id")
+        for person in request.people
+    ]
+
+    if any(
+        not person_id
+        for person_id in person_ids
+    ):
+
+        raise HTTPException(
+            status_code=400,
+            detail="Every person must have an ID.",
+        )
+
+    if len(person_ids) != len(set(person_ids)):
+
+        raise HTTPException(
+            status_code=400,
+            detail="Person IDs must be unique.",
+        )
+
+    # -------------------------------------------------
+    # 3. Make sure every item is assigned
+    # -------------------------------------------------
+
     unassigned_items = [
         item.name
         for item in request.bill.items
@@ -126,6 +190,7 @@ def split_bill(request: SplitRequest):
     ]
 
     if unassigned_items:
+
         raise HTTPException(
             status_code=400,
             detail=(
@@ -134,10 +199,91 @@ def split_bill(request: SplitRequest):
             ),
         )
 
+    # -------------------------------------------------
+    # 4. Validate assignment IDs
+    # -------------------------------------------------
+
+    invalid_assignments = []
+
+    valid_person_ids = set(
+        person_ids
+    )
+
+    for item in request.bill.items:
+
+        for person_id in item.assigned_to:
+
+            if person_id not in valid_person_ids:
+
+                invalid_assignments.append(
+                    f"{item.name} → {person_id}"
+                )
+
+    if invalid_assignments:
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Invalid item assignments: "
+                + ", ".join(
+                    invalid_assignments
+                )
+            ),
+        )
+
+    # -------------------------------------------------
+    # 5. Validate bill arithmetic
+    # -------------------------------------------------
+
+    validation_result = validate_bill(
+        request.bill
+    )
+
+    if not validation_result.valid:
+
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": (
+                    "Bill validation failed. "
+                    "Please review and correct "
+                    "the extracted values before "
+                    "splitting."
+                ),
+                "errors": validation_result.errors,
+                "items_total": (
+                    validation_result.items_total
+                ),
+                "printed_subtotal": (
+                    validation_result.printed_subtotal
+                ),
+                "expected_total": (
+                    validation_result.expected_total
+                ),
+                "printed_total": (
+                    validation_result.printed_total
+                ),
+                "subtotal_difference": (
+                    validation_result.subtotal_difference
+                ),
+                "total_difference": (
+                    validation_result.total_difference
+                ),
+            },
+        )
+
+    # -------------------------------------------------
+    # 6. Calculate consumption-based split
+    # -------------------------------------------------
+
     results = calculate_split(
         request.bill,
         request.people,
     )
+
+    # -------------------------------------------------
+    # 7. Convert results into API response
+    # -------------------------------------------------
 
     result_data = [
         {
@@ -145,12 +291,18 @@ def split_bill(request: SplitRequest):
             "person_name": result.person_name,
             "item_total": result.item_total,
             "tax": result.tax,
-            "service_charge": result.service_charge,
+            "service_charge": (
+                result.service_charge
+            ),
             "discount": result.discount,
             "final_total": result.final_total,
         }
         for result in results
     ]
+
+    # -------------------------------------------------
+    # 8. Calculate final bill total
+    # -------------------------------------------------
 
     total = round(
         sum(
