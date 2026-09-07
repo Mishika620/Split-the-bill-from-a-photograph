@@ -10,7 +10,6 @@ def preprocess_image(image_path: str) -> np.ndarray:
     if image is None:
         raise ValueError(f"Could not read image: {image_path}")
 
-    # Resize very large photographs
     height, width = image.shape[:2]
 
     max_width = 1800
@@ -27,17 +26,14 @@ def preprocess_image(image_path: str) -> np.ndarray:
             interpolation=cv2.INTER_AREA,
         )
 
-    # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Reduce noise
     denoised = cv2.GaussianBlur(
         gray,
         (3, 3),
         0,
     )
 
-    # Improve contrast
     clahe = cv2.createCLAHE(
         clipLimit=2.0,
         tileGridSize=(8, 8),
@@ -45,7 +41,6 @@ def preprocess_image(image_path: str) -> np.ndarray:
 
     enhanced = clahe.apply(denoised)
 
-    # Convert to black and white
     threshold = cv2.adaptiveThreshold(
         enhanced,
         255,
