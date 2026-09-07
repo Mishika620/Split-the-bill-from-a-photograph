@@ -2,20 +2,35 @@ import cv2
 import numpy as np
 
 
-def preprocess_image(image_path: str) -> np.ndarray:
-    """Preprocess a bill photograph before OCR."""
+def preprocess_image(
+    image_path: str,
+) -> np.ndarray:
+    """
+    Preprocess a bill photograph for OCR.
 
-    image = cv2.imread(image_path)
+    The receipt used by the project has clear printed
+    text, so Otsu thresholding is preferred over
+    aggressive adaptive thresholding.
+    """
+
+    image = cv2.imread(
+        image_path
+    )
 
     if image is None:
-        raise ValueError(f"Could not read image: {image_path}")
+        raise ValueError(
+            f"Could not read image: {image_path}"
+        )
 
     height, width = image.shape[:2]
 
-    max_width = 1800
+    max_width = 2000
 
     if width > max_width:
-        scale = max_width / width
+
+        scale = (
+            max_width / width
+        )
 
         image = cv2.resize(
             image,
@@ -26,28 +41,37 @@ def preprocess_image(image_path: str) -> np.ndarray:
             interpolation=cv2.INTER_AREA,
         )
 
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Convert the receipt to grayscale.
+    gray = cv2.cvtColor(
+        image,
+        cv2.COLOR_BGR2GRAY,
+    )
 
+    # Slight denoising while preserving printed text.
     denoised = cv2.GaussianBlur(
         gray,
         (3, 3),
         0,
     )
 
+    # Improve local contrast.
     clahe = cv2.createCLAHE(
         clipLimit=2.0,
         tileGridSize=(8, 8),
     )
 
-    enhanced = clahe.apply(denoised)
+    enhanced = clahe.apply(
+        denoised
+    )
 
-    threshold = cv2.adaptiveThreshold(
+    # Otsu thresholding works well for
+    # clean printed receipts.
+    _, threshold = cv2.threshold(
         enhanced,
+        0,
         255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY,
-        31,
-        11,
+        cv2.THRESH_BINARY
+        + cv2.THRESH_OTSU,
     )
 
     return threshold

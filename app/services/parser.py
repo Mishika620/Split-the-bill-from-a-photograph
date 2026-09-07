@@ -3,382 +3,368 @@ import re
 from app.models.bill import Bill, BillItem
 
 
-# ---------------------------------------------------------
-# MONEY PARSING
-# ---------------------------------------------------------
+SUMMARY_KEYWORDS = (
+    "subtotal",
+    "sub total",
+    "discount",
+    "cgst",
+    "sgst",
+    "tax",
+    "service charge",
+    "total",
+)
 
-def parse_money(value: str) -> float:
-    """Convert a currency-like string into a float."""
 
-    cleaned = (
-        value.replace(",", "")
+def _clean_price(value: str) -> float:
+    """Convert OCR price text into a float."""
+
+    value = (
+        value
+        .replace(",", "")
         .replace("₹", "")
-        .replace("$", "")
-        .replace("€", "")
-        .replace("£", "")
         .strip()
     )
 
-    return float(cleaned)
+    return float(value)
 
 
-# ---------------------------------------------------------
-# CONFIDENCE
-# ---------------------------------------------------------
-
-def calculate_confidence(
-    name: str,
-    quantity: float,
-    item_total: float,
-) -> tuple[float, float, float, float]:
-    """
-    Calculate deterministic confidence scores.
-
-    These rules provide an initial confidence estimate.
-    Later this can be replaced with OCR-model confidence.
-    """
-
-    name_confidence = 0.90 if name.strip() else 0.0
-
-    quantity_confidence = (
-        0.95
-        if quantity > 0
-        else 0.0
-    )
-
-    price_confidence = (
-        0.95
-        if item_total >= 0
-        else 0.0
-    )
-
-    overall_confidence = (
-        name_confidence
-        + quantity_confidence
-        + price_confidence
-    ) / 3
-
-    return (
-        name_confidence,
-        quantity_confidence,
-        price_confidence,
-        overall_confidence,
-    )
-
-
-# ---------------------------------------------------------
-# MONEY EXTRACTION
-# ---------------------------------------------------------
-
-def extract_money_values(line: str) -> list[float]:
-    """
-    Extract currency/decimal values from an OCR line.
-
-    Supports examples such as:
-        ₹450
-        ₹1,250
-        $12.50
-        1250.00
-        450
-    """
-
-    money_pattern = (
-        r"(?:₹|\$|€|£)?\s*"
-        r"\d+(?:,\d{3})*"
-        r"(?:\.\d{1,2})?"
-    )
+def _extract_prices(
+    text: str,
+) -> list[float]:
+    """Extract monetary values from a line."""
 
     matches = re.findall(
-        money_pattern,
-        line,
+        r"\b\d{1,6}(?:,\d{3})*(?:\.\d{2})\b",
+        text,
     )
 
-    values = []
-
-    for match in matches:
-        try:
-            values.append(
-                parse_money(match)
-            )
-        except ValueError:
-            continue
-
-    return values
+    return [
+        _clean_price(value)
+        for value in matches
+    ]
 
 
-# ---------------------------------------------------------
-# NORMALIZE OCR TEXT
-# ---------------------------------------------------------
-
-def normalize_line(line: str) -> str:
-    """Normalize common OCR formatting issues."""
-
-    line = line.strip()
-
-    # Convert repeated whitespace to one space.
-    line = re.sub(
-        r"\s+",
-        " ",
-        line,
-    )
-
-    return line
-
-
-# ---------------------------------------------------------
-# SUMMARY FIELD DETECTION
-# ---------------------------------------------------------
-
-def detect_summary_field(
+def _is_summary_line(
     line: str,
-) -> str | None:
-    """
-    Identify whether an OCR line represents
-    subtotal, tax, service charge, discount or total.
-    """
+) -> bool:
+    """Check whether a line belongs to the bill summary."""
 
-    normalized = line.lower()
+    lower_line = line.lower()
 
-    # Remove punctuation that OCR may introduce.
-    normalized = re.sub(
-        r"[^a-z0-9\s]",
-        " ",
-        normalized,
+    return any(
+        keyword in lower_line
+        for keyword in SUMMARY_KEYWORDS
     )
 
-    normalized = re.sub(
-        r"\s+",
-        " ",
-        normalized,
-    ).strip()
 
-    if "service charge" in normalized:
-        return "service_charge"
-
-    if "service tax" in normalized:
-        return "tax"
-
-    if "cgst" in normalized:
-        return "tax"
-
-    if "sgst" in normalized:
-        return "tax"
-
-    if "gst" in normalized:
-        return "tax"
-
-    if "tax" in normalized:
-        return "tax"
-
-    if "subtotal" in normalized:
-        return "subtotal"
-
-    if "sub total" in normalized:
-        return "subtotal"
-
-    if "discount" in normalized:
-        return "discount"
-
-    # Total should be checked after the more specific
-    # fields above.
-    if re.search(
-        r"\bgrand total\b",
-        normalized,
-    ):
-        return "total"
-
-    if re.search(
-        r"\btotal\b",
-        normalized,
-    ):
-        return "total"
-
-    return None
-
-
-# ---------------------------------------------------------
-# ITEM PARSING
-# ---------------------------------------------------------
-
-def parse_item_line(
+def _parse_item_line(
     line: str,
 ) -> BillItem | None:
     """
-    Parse an item line.
+    Parse an item line containing:
 
-    Expected common formats:
+        Item Name    Quantity    Price
 
-        Pizza 2 450
-        Pizza 1 ₹450
-        Garlic Bread 2 300.00
+    Example:
 
-    The final numeric value is treated as the
-    item's total price.
+        Margherita Pizza 1 299.00
+        Coke 2 120.00
     """
 
-    # First try:
-    # name + quantity + price
-    item_match = re.match(
-        r"(.+?)\s+"
-        r"(\d+(?:\.\d+)?)\s+"
-        r"(?:₹|\$|€|£)?\s*"
-        r"(\d+(?:,\d{3})*(?:\.\d{1,2})?)"
-        r"\s*$",
-        line,
-    )
-
-    if not item_match:
+    if _is_summary_line(line):
         return None
 
-    name = item_match.group(1).strip()
+    ignored_keywords = (
+        "item",
+        "qty",
+        "price",
+        "bill no",
+        "table no",
+        "server",
+        "date",
+        "time",
+        "gstin",
+        "thank you",
+        "scan for",
+    )
+
+    lower_line = line.lower()
+
+    if any(
+        keyword in lower_line
+        for keyword in ignored_keywords
+    ):
+        return None
+
+    price_matches = list(
+        re.finditer(
+            r"\b\d{1,6}(?:,\d{3})*(?:\.\d{2})\b",
+            line,
+        )
+    )
+
+    if not price_matches:
+        return None
+
+    price_match = price_matches[-1]
 
     try:
-        quantity = float(
-            item_match.group(2)
+        total_price = _clean_price(
+            price_match.group()
         )
-
-        item_total = parse_money(
-            item_match.group(3)
-        )
-
     except ValueError:
         return None
 
-    if not name:
+    before_price = line[
+        :price_match.start()
+    ].strip()
+
+    quantity_matches = list(
+        re.finditer(
+            r"(?:^|\s)(\d+(?:\.\d+)?)\s*"
+            r"(?:[^\d\s]\s*)?$",
+            before_price,
+        )
+    )
+
+    if not quantity_matches:
+
+        quantity_matches = list(
+            re.finditer(
+                r"\b(\d+(?:\.\d+)?)\b",
+                before_price,
+            )
+        )
+
+    if not quantity_matches:
+        return None
+
+    quantity_match = quantity_matches[-1]
+
+    try:
+        quantity = float(
+            quantity_match.group(1)
+        )
+    except ValueError:
         return None
 
     if quantity <= 0:
         return None
 
-    if item_total < 0:
-        return None
+    item_name = before_price[
+        :quantity_match.start()
+    ].strip()
 
-    unit_price = (
-        item_total / quantity
+    item_name = re.sub(
+        r"[\s=_%|]+$",
+        "",
+        item_name,
     )
 
-    (
-        name_confidence,
-        quantity_confidence,
-        price_confidence,
-        item_confidence,
-    ) = calculate_confidence(
-        name,
-        quantity,
-        item_total,
+    item_name = item_name.strip()
+
+    if not item_name:
+        return None
+
+    if len(item_name) < 2:
+        return None
+
+    unit_price = round(
+        total_price / quantity,
+        2,
     )
 
     return BillItem(
-        name=name,
+        name=item_name,
         quantity=quantity,
         unit_price=unit_price,
-        total_price=item_total,
+        total_price=round(
+            total_price,
+            2,
+        ),
         assigned_to=[],
-        name_confidence=name_confidence,
-        quantity_confidence=quantity_confidence,
-        price_confidence=price_confidence,
-        confidence=item_confidence,
+        name_confidence=0.90,
+        quantity_confidence=0.95,
+        price_confidence=0.95,
+        confidence=0.93,
     )
 
 
-# ---------------------------------------------------------
-# BILL PARSER
-# ---------------------------------------------------------
+def _find_summary_value(
+    lines: list[str],
+    keywords: tuple[str, ...],
+) -> tuple[float, float]:
+    """
+    Find a monetary value associated with summary keywords.
 
-def parse_bill_text(text: str) -> Bill:
-    """Parse OCR text into a structured Bill."""
+    Returns:
+        (value, confidence)
+    """
+
+    for line in lines:
+
+        lower_line = line.lower()
+
+        if not any(
+            keyword in lower_line
+            for keyword in keywords
+        ):
+            continue
+
+        prices = _extract_prices(
+            line
+        )
+
+        if prices:
+            return (
+                prices[-1],
+                0.95,
+            )
+
+    return (
+        0.0,
+        0.0,
+    )
+
+
+def parse_bill_text(
+    text: str,
+) -> Bill:
+    """
+    Convert OCR text into a structured Bill.
+
+    Supports both:
+    - generic Tax lines
+    - separate CGST and SGST lines
+
+    The parser does not depend on a specific
+    restaurant or fixed item names.
+    """
+
+    lines = [
+        line.strip()
+        for line in text.splitlines()
+        if line.strip()
+    ]
 
     items: list[BillItem] = []
 
-    subtotal = 0.0
-    tax = 0.0
-    service_charge = 0.0
-    discount = 0.0
-    total = 0.0
+    for line in lines:
 
-    subtotal_confidence = 0.0
-    tax_confidence = 0.0
-    service_charge_confidence = 0.0
-    discount_confidence = 0.0
-    total_confidence = 0.0
-
-    lines = text.splitlines()
-
-    for raw_line in lines:
-
-        line = normalize_line(
-            raw_line
-        )
-
-        if not line:
-            continue
-
-        # ---------------------------------------------
-        # Check summary fields first.
-        # ---------------------------------------------
-
-        summary_field = detect_summary_field(
+        item = _parse_item_line(
             line
         )
 
-        if summary_field:
-
-            money_values = extract_money_values(
-                line
-            )
-
-            if not money_values:
-                continue
-
-            amount = money_values[-1]
-
-            if summary_field == "subtotal":
-                subtotal = amount
-                subtotal_confidence = 0.95
-
-            elif summary_field == "tax":
-                tax += amount
-
-                # Cap confidence at 1.0.
-                tax_confidence = min(
-                    1.0,
-                    tax_confidence + 0.90,
-                )
-
-            elif summary_field == "service_charge":
-                service_charge = amount
-                service_charge_confidence = 0.95
-
-            elif summary_field == "discount":
-                discount = amount
-                discount_confidence = 0.95
-
-            elif summary_field == "total":
-                total = amount
-                total_confidence = 0.95
-
-            continue
-
-        # ---------------------------------------------
-        # Try parsing the line as an item.
-        # ---------------------------------------------
-
-        item = parse_item_line(
-            line
-        )
-
-        if item:
+        if item is not None:
             items.append(item)
 
-    # -------------------------------------------------
-    # If subtotal was not explicitly detected,
-    # calculate it from extracted items.
-    # -------------------------------------------------
+    subtotal, subtotal_confidence = (
+        _find_summary_value(
+            lines,
+            (
+                "subtotal",
+                "sub total",
+            ),
+        )
+    )
 
-    if (
-        subtotal == 0.0
-        and items
-    ):
+    discount, discount_confidence = (
+        _find_summary_value(
+            lines,
+            (
+                "discount",
+            ),
+        )
+    )
+
+    service_charge, service_confidence = (
+        _find_summary_value(
+            lines,
+            (
+                "service charge",
+            ),
+        )
+    )
+
+    # First look for explicit CGST and SGST.
+    cgst, cgst_confidence = (
+        _find_summary_value(
+            lines,
+            (
+                "cgst",
+            ),
+        )
+    )
+
+    sgst, sgst_confidence = (
+        _find_summary_value(
+            lines,
+            (
+                "sgst",
+            ),
+        )
+    )
+
+    # If CGST/SGST are present, combine them.
+    if cgst_confidence or sgst_confidence:
+
+        tax = round(
+            cgst + sgst,
+            2,
+        )
+
+        if (
+            cgst_confidence
+            and sgst_confidence
+        ):
+            tax_confidence = min(
+                cgst_confidence,
+                sgst_confidence,
+            )
+        elif cgst_confidence:
+            tax_confidence = cgst_confidence
+        else:
+            tax_confidence = sgst_confidence
+
+    else:
+
+        # Otherwise support a generic Tax line.
+        tax, tax_confidence = (
+            _find_summary_value(
+                lines,
+                (
+                    "tax",
+                ),
+            )
+        )
+
+    total = 0.0
+    total_confidence = 0.0
+
+    for line in reversed(lines):
+
+        lower_line = line.lower()
+
+        if (
+            "total" not in lower_line
+            or "subtotal" in lower_line
+            or "sub total" in lower_line
+        ):
+            continue
+
+        prices = _extract_prices(
+            line
+        )
+
+        if prices:
+            total = prices[-1]
+            total_confidence = 0.95
+            break
+
+    # If subtotal is not printed, derive it
+    # from the extracted item totals.
+    if subtotal == 0.0 and items:
+
         subtotal = round(
             sum(
                 item.total_price
@@ -389,34 +375,6 @@ def parse_bill_text(text: str) -> Bill:
 
         subtotal_confidence = 0.70
 
-    # -------------------------------------------------
-    # If total was not explicitly detected,
-    # calculate an estimated total.
-    # -------------------------------------------------
-
-    if (
-        total == 0.0
-        and (
-            subtotal > 0
-            or tax > 0
-            or service_charge > 0
-            or discount > 0
-        )
-    ):
-        total = round(
-            subtotal
-            + tax
-            + service_charge
-            - discount,
-            2,
-        )
-
-        total_confidence = 0.60
-
-    # -------------------------------------------------
-    # Overall confidence
-    # -------------------------------------------------
-
     confidence_values = [
         item.confidence
         for item in items
@@ -426,7 +384,7 @@ def parse_bill_text(text: str) -> Bill:
         [
             subtotal_confidence,
             tax_confidence,
-            service_charge_confidence,
+            service_confidence,
             discount_confidence,
             total_confidence,
         ]
@@ -438,26 +396,47 @@ def parse_bill_text(text: str) -> Bill:
         if value > 0
     ]
 
-    overall_confidence = (
-        round(
-            sum(non_zero_confidences)
-            / len(non_zero_confidences),
+    if non_zero_confidences:
+
+        overall_confidence = round(
+            sum(
+                non_zero_confidences
+            )
+            / len(
+                non_zero_confidences
+            ),
             2,
         )
-        if non_zero_confidences
-        else 0.0
-    )
+
+    else:
+
+        overall_confidence = 0.0
 
     return Bill(
         items=items,
-        subtotal=subtotal,
-        tax=tax,
-        service_charge=service_charge,
-        discount=discount,
-        total=total,
+        subtotal=round(
+            subtotal,
+            2,
+        ),
+        tax=round(
+            tax,
+            2,
+        ),
+        service_charge=round(
+            service_charge,
+            2,
+        ),
+        discount=round(
+            discount,
+            2,
+        ),
+        total=round(
+            total,
+            2,
+        ),
         subtotal_confidence=subtotal_confidence,
         tax_confidence=tax_confidence,
-        service_charge_confidence=service_charge_confidence,
+        service_charge_confidence=service_confidence,
         discount_confidence=discount_confidence,
         total_confidence=total_confidence,
         confidence=overall_confidence,
