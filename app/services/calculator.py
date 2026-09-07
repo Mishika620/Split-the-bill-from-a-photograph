@@ -14,6 +14,71 @@ class PersonSplit:
     final_total: float
 
 
+def _allocate_amount(
+    amount: float,
+    consumptions: dict[str, float],
+) -> dict[str, float]:
+    """
+    Allocate an amount proportionally according to
+    each person's actual consumption.
+
+    Uses a final-person rounding correction so that
+    allocated values always add up exactly to the
+    original amount.
+    """
+
+    person_ids = list(consumptions.keys())
+
+    total_consumption = sum(
+        consumptions.values()
+    )
+
+    if not person_ids or total_consumption <= 0:
+        return {
+            person_id: 0.0
+            for person_id in person_ids
+        }
+
+    allocations: dict[str, float] = {}
+
+    for person_id in person_ids:
+        ratio = (
+            consumptions[person_id]
+            / total_consumption
+        )
+
+        allocations[person_id] = round(
+            amount * ratio,
+            2,
+        )
+
+    expected_amount = round(
+        amount,
+        2,
+    )
+
+    allocated_amount = round(
+        sum(allocations.values()),
+        2,
+    )
+
+    difference = round(
+        expected_amount - allocated_amount,
+        2,
+    )
+
+    if difference != 0:
+        last_person_id = person_ids[-1]
+
+        allocations[last_person_id] = round(
+            allocations[last_person_id]
+            + difference,
+            2,
+        )
+
+    return allocations
+
+
 def calculate_split(
     bill: Bill,
     people: list[dict],
@@ -27,7 +92,7 @@ def calculate_split(
     - Tax is distributed proportionally according to consumption.
     - Service charge is distributed proportionally according to consumption.
     - Discount is distributed proportionally according to consumption.
-    - Final amounts are rounded to two decimal places.
+    - Every allocated component sums exactly to the bill amount.
     """
 
     if not people:
@@ -81,7 +146,7 @@ def calculate_split(
             consumption[person_id] += item_share
 
     # -------------------------------------------------
-    # Total actual consumption
+    # No consumption
     # -------------------------------------------------
 
     total_consumption = sum(
@@ -89,6 +154,7 @@ def calculate_split(
     )
 
     if total_consumption <= 0:
+
         return [
             PersonSplit(
                 person_id=person_id,
@@ -103,37 +169,59 @@ def calculate_split(
         ]
 
     # -------------------------------------------------
-    # Calculate proportional amounts
+    # Item allocation
+    # -------------------------------------------------
+
+    item_allocations = {
+        person_id: round(
+            consumption[person_id],
+            2,
+        )
+        for person_id in person_ids
+    }
+
+    # -------------------------------------------------
+    # Proportional allocations
+    # -------------------------------------------------
+
+    tax_allocations = _allocate_amount(
+        bill.tax,
+        consumption,
+    )
+
+    service_allocations = _allocate_amount(
+        bill.service_charge,
+        consumption,
+    )
+
+    discount_allocations = _allocate_amount(
+        bill.discount,
+        consumption,
+    )
+
+    # -------------------------------------------------
+    # Build results
     # -------------------------------------------------
 
     results: list[PersonSplit] = []
 
     for person_id in person_ids:
 
-        item_total = round(
-            consumption[person_id],
-            2,
-        )
+        item_total = item_allocations[
+            person_id
+        ]
 
-        ratio = (
-            consumption[person_id]
-            / total_consumption
-        )
+        tax = tax_allocations[
+            person_id
+        ]
 
-        tax = round(
-            bill.tax * ratio,
-            2,
-        )
+        service_charge = service_allocations[
+            person_id
+        ]
 
-        service_charge = round(
-            bill.service_charge * ratio,
-            2,
-        )
-
-        discount = round(
-            bill.discount * ratio,
-            2,
-        )
+        discount = discount_allocations[
+            person_id
+        ]
 
         final_total = round(
             item_total
@@ -156,10 +244,7 @@ def calculate_split(
         )
 
     # -------------------------------------------------
-    # Rounding correction
-    #
-    # Correct the last person's final amount so that
-    # the sum of individual payments equals the bill.
+    # Final total verification
     # -------------------------------------------------
 
     expected_total = round(
@@ -183,7 +268,12 @@ def calculate_split(
         2,
     )
 
+    # -------------------------------------------------
+    # Final rounding correction
+    # -------------------------------------------------
+
     if results and difference != 0:
+
         last = results[-1]
 
         results[-1] = PersonSplit(
