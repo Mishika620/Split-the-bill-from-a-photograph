@@ -1,0 +1,96 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "La Pino'z Pizza",
+  "customer_details": {
+    "name": "Aman Khan",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Vijay Nagar",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "ONLINE",
+    "delivery_method": "DINE-IN"
+  },
+  "order_details": {
+    "invoice_date": "06 August 2026",
+    "invoice_number": "LP88901",
+    "order_number": "LP88901",
+    "order_date": "06 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "La Pino'z Counter",
+    "company_name": "La Pino'z Pizza",
+    "address": "Vijay Nagar, Indore",
+    "gstin": "23AACLP1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "LP-01",
+        "description": "Big Chicken Pizza",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 399,
+        "discount": 0,
+        "gst": 399,
+        "gst_percentage": 0,
+        "net_amount": 399,
+        "total_price": 399
+      },
+      {
+        "article_number": "LP-02",
+        "description": "Cheese Dip",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 2,
+        "unit_price": 60,
+        "discount": 0,
+        "gst": 120,
+        "gst_percentage": 0,
+        "net_amount": 120,
+        "total_price": 120
+      },
+      {
+        "article_number": "LP-03",
+        "description": "Garlic Bread",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 90,
+        "discount": 0,
+        "gst": 90,
+        "gst_percentage": 0,
+        "net_amount": 90,
+        "total_price": 90
+      },
+      {
+        "article_number": "LP-04",
+        "description": "Cold Drink",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 3,
+        "unit_price": 45,
+        "discount": 0,
+        "gst": 135,
+        "gst_percentage": 0,
+        "net_amount": 135,
+        "total_price": 135
+      }
+    ],
+    "products_total": 744,
+    "delivery_charge": 0,
+    "total": 693,
+    "total_in_words": "SIX HUNDRED NINETY THREE RUPEES",
+    "tax_details": {
+      "excluding_gst": 744,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}

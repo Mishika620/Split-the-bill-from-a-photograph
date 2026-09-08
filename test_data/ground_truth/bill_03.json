@@ -1,0 +1,68 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "Zudio",
+  "customer_details": {
+    "name": "Neha Patel",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Treasure Island Mall",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CARD",
+    "delivery_method": "IN-STORE"
+  },
+  "order_details": {
+    "invoice_date": "10 August 2026",
+    "invoice_number": "ZD55021",
+    "order_number": "ZD55021",
+    "order_date": "10 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "Zudio Store",
+    "company_name": "Zudio",
+    "address": "Treasure Island Mall, Indore",
+    "gstin": "23AAACZ1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "ZD-01",
+        "description": "T-Shirt",
+        "hsn_code": "610910",
+        "size": "M",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 399,
+        "discount": 0,
+        "gst": 399,
+        "gst_percentage": 2.5,
+        "net_amount": 389.27,
+        "total_price": 399
+      },
+      {
+        "article_number": "ZD-02",
+        "description": "Jeans",
+        "hsn_code": "620342",
+        "size": "32",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 799,
+        "discount": 0,
+        "gst": 799,
+        "gst_percentage": 2.5,
+        "net_amount": 779.51,
+        "total_price": 799
+      }
+    ],
+    "products_total": 1198,
+    "delivery_charge": 0,
+    "total": 1227.95,
+    "total_in_words": "ONE THOUSAND TWO HUNDRED TWENTY SEVEN RUPEES AND NINETY FIVE PAISE",
+    "tax_details": {
+      "excluding_gst": 1198,
+      "igst_rate": 2.5,
+      "igst_amount": 29.95
+    }
+  }
+}

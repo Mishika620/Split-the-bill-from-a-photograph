@@ -1,0 +1,68 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "TechWorld",
+  "customer_details": {
+    "name": "Arjun Mehta",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Indore",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CARD",
+    "delivery_method": "IN-STORE"
+  },
+  "order_details": {
+    "invoice_date": "07 August 2026",
+    "invoice_number": "TW44121",
+    "order_number": "TW44121",
+    "order_date": "07 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "TechWorld Counter",
+    "company_name": "TechWorld",
+    "address": "Indore",
+    "gstin": "23AAACT1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "TW-01",
+        "description": "Wireless Mouse",
+        "hsn_code": "847160",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 599,
+        "discount": 0,
+        "gst": 599,
+        "gst_percentage": 18,
+        "net_amount": 507.63,
+        "total_price": 599
+      },
+      {
+        "article_number": "TW-02",
+        "description": "Laptop Stand",
+        "hsn_code": "830400",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 799,
+        "discount": 0,
+        "gst": 799,
+        "gst_percentage": 18,
+        "net_amount": 677.12,
+        "total_price": 799
+      }
+    ],
+    "products_total": 1398,
+    "delivery_charge": 0,
+    "total": 1199,
+    "total_in_words": "ONE THOUSAND ONE HUNDRED NINETY NINE RUPEES",
+    "tax_details": {
+      "excluding_gst": 1398,
+      "igst_rate": 18,
+      "igst_amount": 251.64
+    }
+  }
+}

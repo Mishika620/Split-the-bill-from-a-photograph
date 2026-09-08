@@ -1,72 +1,140 @@
 import json
+import re
 from pathlib import Path
+
+from rapidfuzz import fuzz
 
 from app.services.ocr import extract_text
 from app.services.parser import parse_bill_text
+from app.services.validator import validate_bill
 
 
-BASE_DIR = Path(__file__).resolve().parent
-IMAGES_DIR = BASE_DIR / "images"
-GROUND_TRUTH_DIR = BASE_DIR / "ground_truth"
+GROUND_TRUTH_DIR = Path(
+    "test_data/ground_truth"
+)
+
+IMAGE_DIR = Path(
+    "test_data/images"
+)
 
 
-def load_ground_truth(path: Path) -> dict:
-    with path.open("r", encoding="utf-8") as file:
-        return json.load(file)
+IMAGE_EXTENSIONS = (
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".webp",
+)
 
 
-def get_bill_id(ground_truth: dict, path: Path) -> str:
+def clean_text(value) -> str:
+    """Normalize text for comparison."""
+
+    if value is None:
+        return ""
+
+    text = str(value).lower().strip()
+
+    text = re.sub(
+        r"[^a-z0-9]+",
+        " ",
+        text,
+    )
+
+    return " ".join(
+        text.split()
+    )
+
+
+def to_float(value, default=None):
+    """Safely convert a value to float."""
+
+    if value is None:
+        return default
+
+    if isinstance(value, str):
+        value = value.replace(
+            ",",
+            "",
+        )
+
+        value = re.sub(
+            r"[^\d.\-]",
+            "",
+            value,
+        )
+
+    try:
+        return float(value)
+    except (
+        TypeError,
+        ValueError,
+    ):
+        return default
+
+
+def get_bill_id(data, filename):
+    """Get bill ID from JSON or filename."""
+
+    return (
+        data.get("bill_id")
+        or data.get("id")
+        or Path(filename).stem
+    )
+
+
+def get_items_container(data):
     """
-    Get bill ID from JSON when available.
-    Otherwise derive it from the JSON filename.
+    Locate the item list.
+
+    Supports multiple invoice JSON formats.
     """
 
-    bill_id = ground_truth.get("bill_id")
+    possible_locations = [
+        data.get("items"),
+        data.get("order_summary", {}).get(
+            "items"
+        ),
+        data.get("invoice_summary", {}).get(
+            "items"
+        ),
+        data.get("summary", {}).get(
+            "items"
+        ),
+    ]
 
-    if bill_id:
-        return str(bill_id)
+    for items in possible_locations:
 
-    return path.stem
+        if isinstance(items, list):
+            return items
+
+    return []
 
 
-def normalize_item(item: dict) -> dict | None:
-    """
-    Convert different real-world invoice item formats
-    into the common evaluation format.
+def normalize_item(item):
+    """Convert different item schemas into one format."""
 
-    Supported examples:
-    - name + total_price
-    - description + item_total_amount
-    - description + total_amount
-    - description + net_amount
-    """
+    if not isinstance(item, dict):
+        return None
 
     name = (
         item.get("name")
         or item.get("description")
         or item.get("item_name")
         or item.get("product_name")
+        or ""
     )
 
-    if not name:
-        return None
+    quantity = (
+        item.get("quantity")
+        if item.get("quantity") is not None
+        else item.get("qty")
+    )
 
-    quantity = item.get("quantity", 1)
-
-    if isinstance(quantity, str):
-        quantity_text = quantity.strip()
-
-        try:
-            quantity = float(
-                quantity_text.split()[0]
-            )
-        except (ValueError, IndexError):
-            quantity = 1.0
-
-    try:
-        quantity = float(quantity)
-    except (TypeError, ValueError):
-        quantity = 1.0
+    unit_price = (
+        item.get("unit_price")
+        if item.get("unit_price") is not None
+        else item.get("unit_amount")
+    )
 
     total_price = (
         item.get("total_price")
@@ -75,31 +143,46 @@ def normalize_item(item: dict) -> dict | None:
     )
 
     if total_price is None:
-        total_price = item.get("total_amount")
+        total_price = item.get(
+            "total_amount"
+        )
 
     if total_price is None:
-        total_price = item.get("net_amount")
+        total_price = item.get(
+            "net_amount"
+        )
 
-    if total_price is None:
-        return None
+    quantity = to_float(
+        quantity
+    )
 
-    try:
-        total_price = float(total_price)
-    except (TypeError, ValueError):
-        return None
+    unit_price = to_float(
+        unit_price
+    )
 
-    unit_price = item.get("unit_price")
+    total_price = to_float(
+        total_price
+    )
 
-    if unit_price is None:
-        unit_price = item.get("unit_amount")
+    if (
+        total_price is None
+        and unit_price is not None
+        and quantity is not None
+    ):
+        total_price = round(
+            unit_price * quantity,
+            2,
+        )
 
-    if unit_price is None and quantity:
-        unit_price = total_price / quantity
-
-    try:
-        unit_price = float(unit_price)
-    except (TypeError, ValueError):
-        unit_price = total_price
+    if (
+        unit_price is None
+        and total_price is not None
+        and quantity
+    ):
+        unit_price = round(
+            total_price / quantity,
+            2,
+        )
 
     return {
         "name": str(name).strip(),
@@ -110,602 +193,762 @@ def normalize_item(item: dict) -> dict | None:
 
 
 def normalize_ground_truth(
-    ground_truth: dict,
-    path: Path,
-) -> dict:
+    data,
+):
     """
-    Normalize different bill/invoice JSON structures
-    into the schema required by the evaluator.
+    Normalize the complete ground-truth schema.
+
+    Handles:
+    - order_summary
+    - invoice_summary
+    - summary
+    - top-level fields
     """
 
-    bill_id = get_bill_id(
-        ground_truth,
-        path,
-    )
+    items = []
 
-    raw_items = ground_truth.get(
-        "items",
-        [],
-    )
-
-    normalized_items = []
-
-    for item in raw_items:
-
-        normalized_item = normalize_item(
-            item
+    for raw_item in get_items_container(
+        data
+    ):
+        normalized = normalize_item(
+            raw_item
         )
 
-        if normalized_item:
-            normalized_items.append(
-                normalized_item
+        if normalized:
+            items.append(
+                normalized
             )
 
-    summary = ground_truth.get(
-        "invoice_summary",
-        {},
+    order_summary = data.get(
+        "order_summary"
     )
 
-    if not isinstance(summary, dict):
+    if not isinstance(
+        order_summary,
+        dict,
+    ):
+        order_summary = {}
+
+    invoice_summary = data.get(
+        "invoice_summary"
+    )
+
+    if not isinstance(
+        invoice_summary,
+        dict,
+    ):
+        invoice_summary = {}
+
+    summary = data.get(
+        "summary"
+    )
+
+    if not isinstance(
+        summary,
+        dict,
+    ):
         summary = {}
 
-    summary_data = ground_truth.get(
-        "summary",
+    # -----------------------------
+    # Subtotal
+    # -----------------------------
+
+    subtotal = None
+
+    for source in (
+        order_summary,
+        invoice_summary,
+        summary,
+        data,
+    ):
+
+        for key in (
+            "products_total",
+            "subtotal",
+            "sub_total",
+            "items_total",
+        ):
+
+            if source.get(key) is not None:
+
+                subtotal = to_float(
+                    source.get(key)
+                )
+
+                if subtotal is not None:
+                    break
+
+        if subtotal is not None:
+            break
+
+    # -----------------------------
+    # Tax
+    # -----------------------------
+
+    tax = None
+
+    tax_details = order_summary.get(
+        "tax_details",
         {},
     )
 
-    if not isinstance(summary_data, dict):
-        summary_data = {}
+    if not isinstance(
+        tax_details,
+        dict,
+    ):
+        tax_details = {}
 
-    subtotal = ground_truth.get(
-        "subtotal"
-    )
+    for source in (
+        tax_details,
+        invoice_summary,
+        summary,
+        data,
+    ):
 
-    if subtotal is None:
-        subtotal = summary.get(
-            "subtotal"
-        )
+        for key in (
+            "igst_amount",
+            "total_tax_amount",
+            "tax",
+            "tax_amount",
+            "total_tax",
+        ):
 
-    if subtotal is None:
-        subtotal = summary_data.get(
-            "subtotal"
-        )
+            if source.get(key) is not None:
 
-    if subtotal is None:
-        subtotal = ground_truth.get(
-            "products_total"
-        )
+                tax = to_float(
+                    source.get(key)
+                )
 
-    tax = ground_truth.get(
-        "tax"
-    )
+                if tax is not None:
+                    break
+
+        if tax is not None:
+            break
+
+    # -----------------------------
+    # CGST + SGST
+    # -----------------------------
 
     if tax is None:
-        tax = summary.get(
-            "total_tax_amount"
+
+        cgst = to_float(
+            data.get("cgst")
         )
 
-    if tax is None:
-        tax = 0.0
+        sgst = to_float(
+            data.get("sgst")
+        )
 
-    service_charge = ground_truth.get(
-        "service_charge",
-        0.0,
+        if (
+            cgst is not None
+            or sgst is not None
+        ):
+
+            tax = round(
+                (cgst or 0)
+                + (sgst or 0),
+                2,
+            )
+
+    # -----------------------------
+    # Service charge
+    # -----------------------------
+
+    service_charge = None
+
+    for source in (
+        order_summary,
+        invoice_summary,
+        summary,
+        data,
+    ):
+
+        for key in (
+            "service_charge",
+            "service_charge_amount",
+        ):
+
+            if source.get(key) is not None:
+
+                service_charge = to_float(
+                    source.get(key)
+                )
+
+                if service_charge is not None:
+                    break
+
+        if service_charge is not None:
+            break
+
+    # -----------------------------
+    # Discount
+    # -----------------------------
+
+    discount = None
+
+    for source in (
+        order_summary,
+        invoice_summary,
+        summary,
+        data,
+    ):
+
+        for key in (
+            "discount",
+            "discount_amount",
+            "total_discount",
+        ):
+
+            if source.get(key) is not None:
+
+                discount = to_float(
+                    source.get(key)
+                )
+
+                if discount is not None:
+                    break
+
+        if discount is not None:
+            break
+
+    # -----------------------------
+    # Printed total
+    # -----------------------------
+
+    total = None
+
+    for source in (
+        order_summary,
+        invoice_summary,
+        summary,
+        data,
+    ):
+
+        for key in (
+            "grand_total",
+            "total",
+            "final_total",
+            "amount_paid",
+        ):
+
+            if source.get(key) is not None:
+
+                total = to_float(
+                    source.get(key)
+                )
+
+                if total is not None:
+                    break
+
+        if total is not None:
+            break
+
+    # -----------------------------
+    # Explicit wrong-total flag
+    # -----------------------------
+
+    printed_total_is_correct = data.get(
+        "printed_total_is_correct"
     )
-
-    discount = ground_truth.get(
-        "discount",
-        0.0,
-    )
-
-    total = ground_truth.get(
-        "total"
-    )
-
-    if total is None:
-        total = summary.get(
-            "grand_total"
-        )
-
-    if total is None:
-        total = summary_data.get(
-            "grand_total"
-        )
-
-    if total is None:
-        total = summary_data.get(
-            "total"
-        )
 
     return {
-        "bill_id": bill_id,
-        "items": normalized_items,
-        "subtotal": (
-            float(subtotal)
-            if subtotal is not None
-            else None
+        "items": items,
+        "subtotal": subtotal,
+        "tax": tax,
+        "service_charge": service_charge,
+        "discount": discount,
+        "total": total,
+        "printed_total_is_correct": (
+            printed_total_is_correct
         ),
-        "tax": float(tax),
-        "service_charge": float(
-            service_charge
-        ),
-        "discount": float(
-            discount
-        ),
-        "total": (
-            float(total)
-            if total is not None
-            else None
-        ),
-        "printed_total_is_correct":
-            ground_truth.get(
-                "printed_total_is_correct"
-            ),
     }
 
 
-def compare_items(
-    predicted_items: list,
-    expected_items: list,
-) -> dict:
+def find_image(bill_id):
+    """Find image corresponding to a bill."""
 
-    expected_by_name = {
-        item["name"].lower().strip(): item
-        for item in expected_items
-    }
+    candidates = []
 
-    predicted_by_name = {
-        item.name.lower().strip(): item
-        for item in predicted_items
-    }
+    for extension in IMAGE_EXTENSIONS:
 
-    matched = 0
-    quantity_correct = 0
-    price_correct = 0
-
-    for name, expected in expected_by_name.items():
-
-        predicted = predicted_by_name.get(
-            name
+        candidates.append(
+            IMAGE_DIR
+            / f"{bill_id}{extension}"
         )
 
-        if predicted is None:
-            continue
+    # Also support JSON filename mapping.
+    for candidate in candidates:
 
-        matched += 1
+        if candidate.exists():
+            return candidate
+
+    return None
+
+
+def match_items(
+    predicted_items,
+    expected_items,
+):
+    """
+    Fuzzy match predicted OCR items
+    against ground-truth items.
+    """
+
+    matches = []
+
+    used_expected = set()
+
+    for predicted in predicted_items:
+
+        predicted_name = clean_text(
+            predicted.name
+        )
+
+        best_index = None
+        best_score = 0
+
+        for index, expected in enumerate(
+            expected_items
+        ):
+
+            if index in used_expected:
+                continue
+
+            expected_name = clean_text(
+                expected["name"]
+            )
+
+            if not expected_name:
+                continue
+
+            score = fuzz.token_set_ratio(
+                predicted_name,
+                expected_name,
+            )
+
+            if score > best_score:
+
+                best_score = score
+                best_index = index
 
         if (
-            abs(
-                predicted.quantity
-                - expected["quantity"]
-            )
-            <= 0.01
+            best_index is not None
+            and best_score >= 60
         ):
-            quantity_correct += 1
 
-        if (
-            abs(
-                predicted.total_price
-                - expected["total_price"]
+            used_expected.add(
+                best_index
             )
-            <= 0.01
-        ):
-            price_correct += 1
+
+            matches.append(
+                (
+                    predicted,
+                    expected_items[
+                        best_index
+                    ],
+                    best_score,
+                )
+            )
+
+    return matches
+
+
+def compare_bill(
+    bill_id,
+    predicted_bill,
+    expected,
+):
+    """Compare OCR/parser output with ground truth."""
+
+    expected_items = expected[
+        "items"
+    ]
+
+    predicted_items = (
+        predicted_bill.items
+    )
+
+    matches = match_items(
+        predicted_items,
+        expected_items,
+    )
+
+    matched_count = len(
+        matches
+    )
 
     expected_count = len(
         expected_items
     )
 
     item_detection_accuracy = (
-        matched / expected_count
+        matched_count / expected_count * 100
         if expected_count
-        else 0.0
+        else 0
     )
 
+    quantity_correct = 0
+    price_correct = 0
+
+    for (
+        predicted,
+        ground_truth,
+        score,
+    ) in matches:
+
+        expected_quantity = (
+            ground_truth[
+                "quantity"
+            ]
+        )
+
+        expected_price = (
+            ground_truth[
+                "total_price"
+            ]
+        )
+
+        if (
+            expected_quantity is not None
+            and abs(
+                predicted.quantity
+                - expected_quantity
+            )
+            <= 0.01
+        ):
+            quantity_correct += 1
+
+        if (
+            expected_price is not None
+            and abs(
+                predicted.total_price
+                - expected_price
+            )
+            <= 0.01
+        ):
+            price_correct += 1
+
     quantity_accuracy = (
-        quantity_correct / matched
-        if matched
-        else 0.0
+        quantity_correct
+        / matched_count
+        * 100
+        if matched_count
+        else 0
     )
 
     price_accuracy = (
-        price_correct / matched
-        if matched
-        else 0.0
-    )
-
-    return {
-        "expected_items": expected_count,
-        "matched_items": matched,
-        "item_detection_accuracy": round(
-            item_detection_accuracy * 100,
-            2,
-        ),
-        "quantity_accuracy": round(
-            quantity_accuracy * 100,
-            2,
-        ),
-        "price_accuracy": round(
-            price_accuracy * 100,
-            2,
-        ),
-    }
-
-
-def compare_field(
-    predicted: float,
-    expected: float | None,
-) -> bool | None:
-
-    if expected is None:
-        return None
-
-    return (
-        abs(
-            predicted - expected
-        )
-        <= 0.01
-    )
-
-
-def print_field_result(
-    label: str,
-    predicted: float,
-    expected: float | None,
-) -> None:
-
-    if expected is None:
-
-        print(
-            f"{label}: SKIP "
-            f"(not available in ground truth)"
-        )
-
-        return
-
-    result = compare_field(
-        predicted,
-        expected,
-    )
-
-    print(
-        f"{label}: "
-        f"{'PASS' if result else 'FAIL'} "
-        f"(predicted={predicted}, "
-        f"expected={expected})"
-    )
-
-
-def evaluate_bill(
-    image_path: Path,
-    ground_truth_path: Path,
-) -> dict:
-
-    raw_ground_truth = load_ground_truth(
-        ground_truth_path
-    )
-
-    ground_truth = normalize_ground_truth(
-        raw_ground_truth,
-        ground_truth_path,
-    )
-
-    print()
-    print("=" * 60)
-    print(
-        f"Bill: {ground_truth['bill_id']}"
-    )
-    print(
-        f"Image: {image_path.name}"
-    )
-    print("=" * 60)
-
-    text = extract_text(
-        str(image_path)
-    )
-
-    bill = parse_bill_text(
-        text
-    )
-
-    item_metrics = compare_items(
-        bill.items,
-        ground_truth["items"],
-    )
-
-    subtotal_correct = compare_field(
-        bill.subtotal,
-        ground_truth["subtotal"],
-    )
-
-    tax_correct = compare_field(
-        bill.tax,
-        ground_truth["tax"],
-    )
-
-    service_charge_correct = compare_field(
-        bill.service_charge,
-        ground_truth[
-            "service_charge"
-        ],
-    )
-
-    discount_correct = compare_field(
-        bill.discount,
-        ground_truth["discount"],
-    )
-
-    total_correct = compare_field(
-        bill.total,
-        ground_truth["total"],
+        price_correct
+        / matched_count
+        * 100
+        if matched_count
+        else 0
     )
 
     print(
         f"Items detected: "
-        f"{item_metrics['matched_items']}/"
-        f"{item_metrics['expected_items']}"
+        f"{matched_count}/{expected_count}"
     )
 
     print(
         f"Item detection accuracy: "
-        f"{item_metrics['item_detection_accuracy']}%"
+        f"{item_detection_accuracy:.1f}%"
     )
 
     print(
         f"Quantity accuracy: "
-        f"{item_metrics['quantity_accuracy']}%"
+        f"{quantity_accuracy:.1f}%"
     )
 
     print(
         f"Price accuracy: "
-        f"{item_metrics['price_accuracy']}%"
+        f"{price_accuracy:.1f}%"
     )
 
-    print_field_result(
-        "Subtotal",
-        bill.subtotal,
-        ground_truth["subtotal"],
+    # -----------------------------
+    # Field comparisons
+    # -----------------------------
+
+    fields = (
+        (
+            "Subtotal",
+            predicted_bill.subtotal,
+            expected["subtotal"],
+        ),
+        (
+            "Tax",
+            predicted_bill.tax,
+            expected["tax"],
+        ),
+        (
+            "Service charge",
+            predicted_bill.service_charge,
+            expected["service_charge"],
+        ),
+        (
+            "Discount",
+            predicted_bill.discount,
+            expected["discount"],
+        ),
+        (
+            "Total",
+            predicted_bill.total,
+            expected["total"],
+        ),
     )
 
-    print_field_result(
-        "Tax",
-        bill.tax,
-        ground_truth["tax"],
-    )
+    for (
+        field_name,
+        predicted_value,
+        expected_value,
+    ) in fields:
 
-    print_field_result(
-        "Service charge",
-        bill.service_charge,
-        ground_truth[
-            "service_charge"
-        ],
-    )
-
-    print_field_result(
-        "Discount",
-        bill.discount,
-        ground_truth["discount"],
-    )
-
-    print_field_result(
-        "Total",
-        bill.total,
-        ground_truth["total"],
-    )
-
-    wrong_total_check = None
-
-    if (
-        ground_truth[
-            "printed_total_is_correct"
-        ]
-        is False
-    ):
-
-        calculated_total = round(
-            ground_truth["subtotal"]
-            + ground_truth["tax"]
-            + ground_truth[
-                "service_charge"
-            ]
-            - ground_truth[
-                "discount"
-            ],
-            2,
-        )
-
-        if ground_truth["total"] is not None:
-
-            wrong_total_check = (
-                abs(
-                    calculated_total
-                    - ground_truth["total"]
-                )
-                > 0.01
-            )
+        if expected_value is None:
 
             print(
-                "Wrong printed total check: "
-                f"{'PASS' if wrong_total_check else 'FAIL'} "
-                f"(calculated={calculated_total}, "
-                f"printed={ground_truth['total']})"
+                f"{field_name}: "
+                f"SKIP (not available in ground truth)"
+            )
+
+            continue
+
+        difference = abs(
+            predicted_value
+            - expected_value
+        )
+
+        if difference <= 0.01:
+
+            print(
+                f"{field_name}: "
+                f"PASS "
+                f"(predicted={predicted_value}, "
+                f"expected={expected_value})"
+            )
+
+        else:
+
+            print(
+                f"{field_name}: "
+                f"FAIL "
+                f"(predicted={predicted_value}, "
+                f"expected={expected_value})"
+            )
+
+    # -----------------------------
+    # Wrong printed total detection
+    # -----------------------------
+
+    explicit_flag = expected[
+        "printed_total_is_correct"
+    ]
+
+    validation = validate_bill(
+        predicted_bill
+    )
+
+    if explicit_flag is False:
+
+        detected_wrong_total = (
+            not validation.valid
+            and abs(
+                validation.total_difference
+            ) > 0.01
+        )
+
+        if detected_wrong_total:
+
+            print(
+                "Wrong printed total: PASS "
+                "(inconsistency detected)"
+            )
+
+        else:
+
+            print(
+                "Wrong printed total: FAIL "
+                "(inconsistency not detected)"
             )
 
     return {
-        "bill_id": ground_truth["bill_id"],
-        "item_metrics": item_metrics,
-        "subtotal_correct": subtotal_correct,
-        "tax_correct": tax_correct,
-        "service_charge_correct": (
-            service_charge_correct
+        "item_detection": (
+            item_detection_accuracy
         ),
-        "discount_correct": discount_correct,
-        "total_correct": total_correct,
-        "wrong_total_check": (
-            wrong_total_check
-        ),
+        "quantity": quantity_accuracy,
+        "price": price_accuracy,
     }
 
 
-def find_image(
-    bill_id: str,
-) -> Path | None:
+def evaluate_bill(
+    json_path,
+):
+    """Evaluate one bill."""
 
-    extensions = (
-        ".jpg",
-        ".jpeg",
-        ".png",
-        ".webp",
-    )
+    with open(
+        json_path,
+        "r",
+        encoding="utf-8",
+    ) as file:
 
-    for extension in extensions:
-
-        image_path = (
-            IMAGES_DIR
-            / f"{bill_id}{extension}"
+        ground_truth_raw = json.load(
+            file
         )
 
-        if image_path.exists():
-            return image_path
+    bill_id = get_bill_id(
+        ground_truth_raw,
+        json_path.name,
+    )
 
-    return None
+    image_path = find_image(
+        bill_id
+    )
+
+    if image_path is None:
+
+        print(
+            f"Image not found for {bill_id}"
+        )
+
+        return None
+
+    print(
+        "\n"
+        + "=" * 65
+    )
+
+    print(
+        f"Bill: {bill_id}"
+    )
+
+    print(
+        f"Image: {image_path.name}"
+    )
+
+    expected = normalize_ground_truth(
+        ground_truth_raw
+    )
+
+    try:
+
+        extracted_text = extract_text(
+            str(image_path)
+        )
+
+        predicted_bill = parse_bill_text(
+            extracted_text
+        )
+
+        return compare_bill(
+            bill_id,
+            predicted_bill,
+            expected,
+        )
+
+    except Exception as error:
+
+        print(
+            f"ERROR: {error}"
+        )
+
+        return None
 
 
-def main() -> None:
+def main():
+    """Evaluate all available ground-truth bills."""
 
-    ground_truth_files = sorted(
+    json_files = sorted(
         GROUND_TRUTH_DIR.glob(
             "*.json"
         )
     )
 
-    if not ground_truth_files:
+    if not json_files:
 
         print(
-            "No ground-truth files found."
+            "No ground-truth JSON files found."
         )
 
         return
 
     results = []
 
-    for ground_truth_path in ground_truth_files:
+    for json_path in json_files:
 
-        ground_truth = load_ground_truth(
-            ground_truth_path
+        result = evaluate_bill(
+            json_path
         )
 
-        bill_id = get_bill_id(
-            ground_truth,
-            ground_truth_path,
-        )
-
-        image_path = find_image(
-            bill_id
-        )
-
-        if image_path is None:
-
-            print()
-            print(
-                f"Skipping {bill_id}: "
-                "matching image not found."
-            )
-
-            continue
-
-        try:
-
-            result = evaluate_bill(
-                image_path,
-                ground_truth_path,
-            )
+        if result is not None:
 
             results.append(
                 result
             )
 
-        except Exception as error:
+    print(
+        "\n"
+        + "=" * 65
+    )
 
-            print()
-            print(
-                f"ERROR evaluating "
-                f"{bill_id}: {error}"
-            )
+    print(
+        "FINAL EVALUATION SUMMARY"
+    )
 
-    if not results:
-
-        print(
-            "No bills could be evaluated."
-        )
-
-        return
-
-    print()
-    print("=" * 60)
-    print("EVALUATION SUMMARY")
-    print("=" * 60)
+    print(
+        "=" * 65
+    )
 
     print(
         f"Bills evaluated: "
         f"{len(results)}"
     )
 
-    average_detection = sum(
-        result["item_metrics"][
-            "item_detection_accuracy"
-        ]
-        for result in results
-    ) / len(results)
+    if not results:
 
-    average_quantity = sum(
-        result["item_metrics"][
-            "quantity_accuracy"
-        ]
-        for result in results
-    ) / len(results)
+        return
 
-    average_price = sum(
-        result["item_metrics"][
-            "price_accuracy"
-        ]
-        for result in results
-    ) / len(results)
+    avg_item_detection = (
+        sum(
+            result[
+                "item_detection"
+            ]
+            for result in results
+        )
+        / len(results)
+    )
+
+    avg_quantity = (
+        sum(
+            result[
+                "quantity"
+            ]
+            for result in results
+        )
+        / len(results)
+    )
+
+    avg_price = (
+        sum(
+            result[
+                "price"
+            ]
+            for result in results
+        )
+        / len(results)
+    )
 
     print(
         f"Average item detection: "
-        f"{average_detection:.2f}%"
+        f"{avg_item_detection:.2f}%"
     )
 
     print(
         f"Average quantity accuracy: "
-        f"{average_quantity:.2f}%"
+        f"{avg_quantity:.2f}%"
     )
 
     print(
         f"Average price accuracy: "
-        f"{average_price:.2f}%"
+        f"{avg_price:.2f}%"
     )
-
-    wrong_total_results = [
-        result["wrong_total_check"]
-        for result in results
-        if result["wrong_total_check"]
-        is not None
-    ]
-
-    if wrong_total_results:
-
-        passed = sum(
-            wrong_total_results
-        )
-
-        print(
-            f"Wrong-total validation: "
-            f"{passed}/"
-            f"{len(wrong_total_results)} "
-            "passed"
-        )
 
 
 if __name__ == "__main__":

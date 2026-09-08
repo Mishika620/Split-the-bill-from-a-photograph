@@ -1,0 +1,82 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "Domino's Pizza",
+  "customer_details": {
+    "name": "Riya Singh",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Palasia",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "ONLINE",
+    "delivery_method": "DELIVERY"
+  },
+  "order_details": {
+    "invoice_date": "09 August 2026",
+    "invoice_number": "DP04192",
+    "order_number": "DP04192",
+    "order_date": "09 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "Domino's Delivery",
+    "company_name": "Jubilant FoodWorks",
+    "address": "Palasia, Indore",
+    "gstin": "23AAACJ1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "DP-01",
+        "description": "Farmhouse Pizza",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 299,
+        "discount": 0,
+        "gst": 299,
+        "gst_percentage": 0,
+        "net_amount": 299,
+        "total_price": 299
+      },
+      {
+        "article_number": "DP-02",
+        "description": "Pepsi",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 30,
+        "discount": 0,
+        "gst": 30,
+        "gst_percentage": 0,
+        "net_amount": 30,
+        "total_price": 30
+      },
+      {
+        "article_number": "DP-03",
+        "description": "Cheese Dip",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 60,
+        "discount": 0,
+        "gst": 60,
+        "gst_percentage": 0,
+        "net_amount": 60,
+        "total_price": 60
+      }
+    ],
+    "products_total": 389,
+    "delivery_charge": 0,
+    "total": 389,
+    "total_in_words": "THREE HUNDRED EIGHTY NINE RUPEES",
+    "tax_details": {
+      "excluding_gst": 389,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "CAFE COFFEE DAY",
+  "customer_details": {
+    "name": "Rahul Sharma",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "MG Road",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CARD",
+    "delivery_method": "DINE-IN"
+  },
+  "order_details": {
+    "invoice_date": "12 August 2026",
+    "invoice_number": "CCD24561",
+    "order_number": "CCD24561",
+    "order_date": "12 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "Cafe Counter",
+    "company_name": "Cafe Coffee Day",
+    "address": "MG Road, Indore",
+    "gstin": "23AACCC1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "CCD-01",
+        "description": "Cappuccino",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 120,
+        "discount": 0,
+        "gst": 120,
+        "gst_percentage": 0,
+        "net_amount": 120,
+        "total_price": 120
+      },
+      {
+        "article_number": "CCD-02",
+        "description": "Blueberry Muffin",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 80,
+        "discount": 0,
+        "gst": 80,
+        "gst_percentage": 0,
+        "net_amount": 80,
+        "total_price": 80
+      }
+    ],
+    "products_total": 200,
+    "delivery_charge": 0,
+    "total": 200,
+    "total_in_words": "TWO HUNDRED RUPEES",
+    "tax_details": {
+      "excluding_gst": 200,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}

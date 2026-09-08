@@ -1,0 +1,208 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "DMart",
+  "customer_details": {
+    "name": "Karan Joshi",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Indore",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CASH",
+    "delivery_method": "IN-STORE"
+  },
+  "order_details": {
+    "invoice_date": "02 August 2026",
+    "invoice_number": "DM33221",
+    "order_number": "DM33221",
+    "order_date": "02 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "DMart Counter",
+    "company_name": "Avenue Supermarts",
+    "address": "Indore",
+    "gstin": "23AAACA1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "DM-01",
+        "description": "Toilet Cleaner",
+        "hsn_code": "340220",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 85,
+        "discount": 0,
+        "gst": 85,
+        "gst_percentage": 0,
+        "net_amount": 85,
+        "total_price": 85
+      },
+      {
+        "article_number": "DM-02",
+        "description": "Detergent",
+        "hsn_code": "340220",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 120,
+        "discount": 0,
+        "gst": 120,
+        "gst_percentage": 0,
+        "net_amount": 120,
+        "total_price": 120
+      },
+      {
+        "article_number": "DM-03",
+        "description": "Moong Dal",
+        "hsn_code": "071331",
+        "size": "1kg",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 110,
+        "discount": 0,
+        "gst": 110,
+        "gst_percentage": 0,
+        "net_amount": 110,
+        "total_price": 110
+      },
+      {
+        "article_number": "DM-04",
+        "description": "Rice",
+        "hsn_code": "100630",
+        "size": "5kg",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 320,
+        "discount": 0,
+        "gst": 320,
+        "gst_percentage": 0,
+        "net_amount": 320,
+        "total_price": 320
+      },
+      {
+        "article_number": "DM-05",
+        "description": "Atta",
+        "hsn_code": "110100",
+        "size": "5kg",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 165,
+        "discount": 0,
+        "gst": 165,
+        "gst_percentage": 0,
+        "net_amount": 165,
+        "total_price": 165
+      },
+      {
+        "article_number": "DM-06",
+        "description": "Sugar",
+        "hsn_code": "170114",
+        "size": "1kg",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 60,
+        "discount": 0,
+        "gst": 60,
+        "gst_percentage": 0,
+        "net_amount": 60,
+        "total_price": 60
+      },
+      {
+        "article_number": "DM-07",
+        "description": "Cooking Oil",
+        "hsn_code": "151211",
+        "size": "1L",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 210,
+        "discount": 0,
+        "gst": 210,
+        "gst_percentage": 0,
+        "net_amount": 210,
+        "total_price": 210
+      },
+      {
+        "article_number": "DM-08",
+        "description": "Biscuits",
+        "hsn_code": "190531",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 2,
+        "unit_price": 40,
+        "discount": 0,
+        "gst": 80,
+        "gst_percentage": 0,
+        "net_amount": 80,
+        "total_price": 80
+      },
+      {
+        "article_number": "DM-09",
+        "description": "Tissue Paper",
+        "hsn_code": "481820",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 75,
+        "discount": 0,
+        "gst": 75,
+        "gst_percentage": 0,
+        "net_amount": 75,
+        "total_price": 75
+      },
+      {
+        "article_number": "DM-10",
+        "description": "Soap",
+        "hsn_code": "340111",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 2,
+        "unit_price": 90,
+        "discount": 0,
+        "gst": 180,
+        "gst_percentage": 0,
+        "net_amount": 180,
+        "total_price": 180
+      },
+      {
+        "article_number": "DM-11",
+        "description": "Shampoo",
+        "hsn_code": "330510",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 150,
+        "discount": 0,
+        "gst": 150,
+        "gst_percentage": 0,
+        "net_amount": 150,
+        "total_price": 150
+      },
+      {
+        "article_number": "DM-12",
+        "description": "Toothpaste",
+        "hsn_code": "330610",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 85,
+        "discount": 0,
+        "gst": 85,
+        "gst_percentage": 0,
+        "net_amount": 85,
+        "total_price": 85
+      }
+    ],
+    "products_total": 1390,
+    "delivery_charge": 0,
+    "total": 1390,
+    "total_in_words": "ONE THOUSAND THREE HUNDRED NINETY RUPEES",
+    "tax_details": {
+      "excluding_gst": 1390,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}

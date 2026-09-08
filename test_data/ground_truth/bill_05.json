@@ -1,0 +1,82 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "Big Bazaar",
+  "customer_details": {
+    "name": "Suresh Kumar",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "MG Road",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CASH",
+    "delivery_method": "IN-STORE"
+  },
+  "order_details": {
+    "invoice_date": "01 August 2026",
+    "invoice_number": "BB899123",
+    "order_number": "BB899123",
+    "order_date": "01 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "Big Bazaar Counter",
+    "company_name": "Big Bazaar",
+    "address": "MG Road, Indore",
+    "gstin": "23AAACB1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "BB-01",
+        "description": "Rice 5kg",
+        "hsn_code": "100630",
+        "size": "5kg",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 325,
+        "discount": 0,
+        "gst": 325,
+        "gst_percentage": 0,
+        "net_amount": 325,
+        "total_price": 325
+      },
+      {
+        "article_number": "BB-02",
+        "description": "Sunflower Oil",
+        "hsn_code": "151211",
+        "size": "1L",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 210,
+        "discount": 0,
+        "gst": 210,
+        "gst_percentage": 0,
+        "net_amount": 210,
+        "total_price": 210
+      },
+      {
+        "article_number": "BB-03",
+        "description": "Toor Dal",
+        "hsn_code": "071360",
+        "size": "1kg",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 180,
+        "discount": 0,
+        "gst": 180,
+        "gst_percentage": 0,
+        "net_amount": 180,
+        "total_price": 180
+      }
+    ],
+    "products_total": 715,
+    "delivery_charge": 0,
+    "total": 715,
+    "total_in_words": "SEVEN HUNDRED FIFTEEN RUPEES",
+    "tax_details": {
+      "excluding_gst": 715,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}

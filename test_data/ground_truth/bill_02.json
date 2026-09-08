@@ -1,0 +1,82 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "McDonald's",
+  "customer_details": {
+    "name": "Amit Verma",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Vijay Nagar",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CARD",
+    "delivery_method": "TAKE-AWAY"
+  },
+  "order_details": {
+    "invoice_date": "14 August 2026",
+    "invoice_number": "MD78231",
+    "order_number": "MD78231",
+    "order_date": "14 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "McDonald's Counter",
+    "company_name": "McDonald's India",
+    "address": "Vijay Nagar, Indore",
+    "gstin": "23AAABC1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "MD-01",
+        "description": "McAloo Tikki Burger",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 59,
+        "discount": 0,
+        "gst": 59,
+        "gst_percentage": 0,
+        "net_amount": 59,
+        "total_price": 59
+      },
+      {
+        "article_number": "MD-02",
+        "description": "Medium Fries",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 69,
+        "discount": 0,
+        "gst": 69,
+        "gst_percentage": 0,
+        "net_amount": 69,
+        "total_price": 69
+      },
+      {
+        "article_number": "MD-03",
+        "description": "Coke (M)",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 57,
+        "discount": 0,
+        "gst": 57,
+        "gst_percentage": 0,
+        "net_amount": 57,
+        "total_price": 57
+      }
+    ],
+    "products_total": 185,
+    "delivery_charge": 0,
+    "total": 185,
+    "total_in_words": "ONE HUNDRED EIGHTY FIVE RUPEES",
+    "tax_details": {
+      "excluding_gst": 185,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}

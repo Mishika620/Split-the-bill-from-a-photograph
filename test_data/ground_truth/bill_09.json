@@ -1,0 +1,82 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "Pizza Hut",
+  "customer_details": {
+    "name": "Vikas Jain",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Indore",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CARD",
+    "delivery_method": "TAKE-AWAY"
+  },
+  "order_details": {
+    "invoice_date": "11 August 2026",
+    "invoice_number": "PH5672",
+    "order_number": "PH5672",
+    "order_date": "11 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "Pizza Hut Counter",
+    "company_name": "Pizza Hut India",
+    "address": "Indore",
+    "gstin": "23AACPH1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "PH-01",
+        "description": "Chicken Supreme",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 314.5,
+        "discount": 0,
+        "gst": 314.5,
+        "gst_percentage": 0,
+        "net_amount": 314.5,
+        "total_price": 314.5
+      },
+      {
+        "article_number": "PH-02",
+        "description": "Garlic Bread",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 119,
+        "discount": 0,
+        "gst": 119,
+        "gst_percentage": 0,
+        "net_amount": 119,
+        "total_price": 119
+      },
+      {
+        "article_number": "PH-03",
+        "description": "Pepsi",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 57,
+        "discount": 0,
+        "gst": 57,
+        "gst_percentage": 0,
+        "net_amount": 57,
+        "total_price": 57
+      }
+    ],
+    "products_total": 490.5,
+    "delivery_charge": 0,
+    "total": 490.5,
+    "total_in_words": "FOUR HUNDRED NINETY RUPEES AND FIFTY PAISE",
+    "tax_details": {
+      "excluding_gst": 490.5,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}

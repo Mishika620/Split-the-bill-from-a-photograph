@@ -1,0 +1,96 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "Reliance Fresh",
+  "customer_details": {
+    "name": "Asha Verma",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Vijay Nagar",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CASH",
+    "delivery_method": "IN-STORE"
+  },
+  "order_details": {
+    "invoice_date": "18 August 2026",
+    "invoice_number": "RF66788",
+    "order_number": "RF66788",
+    "order_date": "18 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "Reliance Fresh Counter",
+    "company_name": "Reliance Retail",
+    "address": "Vijay Nagar, Indore",
+    "gstin": "23AAACR1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "RF-01",
+        "description": "Milk",
+        "hsn_code": "040110",
+        "size": "1L",
+        "colour": "N/A",
+        "qty": 2,
+        "unit_price": 60,
+        "discount": 0,
+        "gst": 120,
+        "gst_percentage": 0,
+        "net_amount": 120,
+        "total_price": 120
+      },
+      {
+        "article_number": "RF-02",
+        "description": "Bread",
+        "hsn_code": "190590",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 40,
+        "discount": 0,
+        "gst": 40,
+        "gst_percentage": 0,
+        "net_amount": 40,
+        "total_price": 40
+      },
+      {
+        "article_number": "RF-03",
+        "description": "Sugar",
+        "hsn_code": "170114",
+        "size": "1kg",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 45,
+        "discount": 0,
+        "gst": 45,
+        "gst_percentage": 0,
+        "net_amount": 45,
+        "total_price": 45
+      },
+      {
+        "article_number": "RF-04",
+        "description": "Tea",
+        "hsn_code": "090230",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 150,
+        "discount": 0,
+        "gst": 150,
+        "gst_percentage": 0,
+        "net_amount": 150,
+        "total_price": 150
+      }
+    ],
+    "products_total": 355,
+    "delivery_charge": 0,
+    "total": 355,
+    "total_in_words": "THREE HUNDRED FIFTY FIVE RUPEES",
+    "tax_details": {
+      "excluding_gst": 355,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "H&M",
+  "customer_details": {
+    "name": "Priya Sharma",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Phoenix Mall",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CARD",
+    "delivery_method": "HOME DELIVERY"
+  },
+  "order_details": {
+    "invoice_date": "13 August 2026",
+    "invoice_number": "HM77821",
+    "order_number": "HM77821",
+    "order_date": "13 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "H&M Online",
+    "company_name": "H&M Hennes & Mauritz Retail Pvt Ltd",
+    "address": "Phoenix Mall, Indore",
+    "gstin": "23AAACH1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "HM-01",
+        "description": "T-Shirt",
+        "hsn_code": "610910",
+        "size": "M",
+        "colour": "BLACK",
+        "qty": 1,
+        "unit_price": 799,
+        "discount": 0,
+        "gst": 799,
+        "gst_percentage": 12,
+        "net_amount": 713.39,
+        "total_price": 799
+      },
+      {
+        "article_number": "HM-02",
+        "description": "Shorts",
+        "hsn_code": "620342",
+        "size": "M",
+        "colour": "BLACK",
+        "qty": 1,
+        "unit_price": 1199,
+        "discount": 0,
+        "gst": 1199,
+        "gst_percentage": 12,
+        "net_amount": 1069.0,
+        "total_price": 1199
+      }
+    ],
+    "products_total": 1998,
+    "delivery_charge": 0,
+    "total": 1998,
+    "total_in_words": "ONE THOUSAND NINE HUNDRED NINETY EIGHT RUPEES",
+    "tax_details": {
+      "excluding_gst": 1783.93,
+      "igst_rate": 12,
+      "igst_amount": 214.07
+    }
+  }
+}

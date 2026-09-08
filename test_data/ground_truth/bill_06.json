@@ -1,0 +1,82 @@
+{
+  "invoice_type": "TAX INVOICE",
+  "brand": "Waffle Way",
+  "customer_details": {
+    "name": "Pooja Mehta",
+    "email": "unclear",
+    "delivery_address": {
+      "address_line": "Scheme No. 54",
+      "city": "Indore",
+      "country": "India"
+    },
+    "payment_method": "CASH",
+    "delivery_method": "DINE-IN"
+  },
+  "order_details": {
+    "invoice_date": "05 August 2026",
+    "invoice_number": "WW22345",
+    "order_number": "WW22345",
+    "order_date": "05 August 2026"
+  },
+  "shipping_details": {
+    "shipped_by": "Waffle Way Counter",
+    "company_name": "Waffle Way",
+    "address": "Scheme No. 54, Indore",
+    "gstin": "23AACWW1234F1Z6"
+  },
+  "order_summary": {
+    "items": [
+      {
+        "article_number": "WW-01",
+        "description": "Chicken Burger",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 200,
+        "discount": 0,
+        "gst": 200,
+        "gst_percentage": 0,
+        "net_amount": 200,
+        "total_price": 200
+      },
+      {
+        "article_number": "WW-02",
+        "description": "Vanilla Shake",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 180,
+        "discount": 0,
+        "gst": 180,
+        "gst_percentage": 0,
+        "net_amount": 180,
+        "total_price": 180
+      },
+      {
+        "article_number": "WW-03",
+        "description": "Extra Cheese",
+        "hsn_code": "996331",
+        "size": "1",
+        "colour": "N/A",
+        "qty": 1,
+        "unit_price": 30,
+        "discount": 0,
+        "gst": 30,
+        "gst_percentage": 0,
+        "net_amount": 30,
+        "total_price": 30
+      }
+    ],
+    "products_total": 410,
+    "delivery_charge": 0,
+    "total": 410,
+    "total_in_words": "FOUR HUNDRED TEN RUPEES",
+    "tax_details": {
+      "excluding_gst": 410,
+      "igst_rate": 0,
+      "igst_amount": 0
+    }
+  }
+}
