@@ -17,7 +17,7 @@ Splitting a restaurant or shopping bill manually can be inconvenient, especially
 7. Distribute tax and service charges proportionally according to actual consumption.
 8. Validate the bill before calculating the final split.
 
-The application is designed with a **human-in-the-loop workflow**, so OCR mistakes can be corrected before the final calculation.
+The application follows a **human-in-the-loop workflow**, ensuring that OCR mistakes can be reviewed and corrected before the final calculation.
 
 ---
 
@@ -40,24 +40,36 @@ The system attempts to identify:
 
 - Item names
 - Quantities
-- Prices
+- Unit prices
+- Item totals
 - Subtotal
 - Tax / GST
 - Service charge
 - Discount
-- Total
+- Printed total
 
 ### 🧾 Structured Bill Representation
 
 Extracted bill information is converted into validated structured data using **Pydantic models**.
 
-Each important field also contains a confidence score.
+The system also maintains confidence scores for important extracted fields.
 
 ### 👤 Human Review
 
-Before splitting the bill, users can review and correct OCR-extracted information.
+OCR results are displayed in a review interface before calculations are performed.
 
-This prevents incorrect OCR values from directly affecting the final calculation.
+Users can correct:
+
+- Item names
+- Quantities
+- Prices
+- Subtotal
+- Tax
+- Service charge
+- Discount
+- Total
+
+This prevents OCR errors from directly affecting the final bill calculation.
 
 ### 👥 Multiple People
 
@@ -81,7 +93,9 @@ Instead, they are distributed proportionally according to each person's actual i
 
 ### ⚠️ Bill Validation
 
-The application checks whether:
+Before splitting, the system validates the bill by checking:
 
 ```text
-Sum of item prices = Printed subtotal
+Sum of item totals = Printed subtotal
+
+Subtotal + tax + service charge - discount = Printed total
