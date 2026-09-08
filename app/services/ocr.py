@@ -1,6 +1,14 @@
+import os
+
 import pytesseract
 
 from app.services.image_processing import preprocess_image
+
+
+TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+if os.path.exists(TESSERACT_PATH):
+    pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
 
 def extract_text(
