@@ -598,3 +598,4 @@ Bill images are processed locally during development.
 The application does not require a cloud OCR provider or external payment service.
 
 Uploaded images used during processing are handled by the local application workflow and are not intended to be used as a permanent public dataset.
+Uploaded images used during processing are handled by the local application workflow and are not intended to be used as a permanent public dataset.
