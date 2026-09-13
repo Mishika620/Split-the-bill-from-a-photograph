@@ -1,17 +1,53 @@
 // =====================================================
+// SPLITBILL FRONTEND
+// =====================================================
+
+
+// =====================================================
 // DOM ELEMENTS
 // =====================================================
 
-const itemsBody = document.getElementById("itemsBody");
+const uploadModeButton =
+    document.getElementById("uploadModeButton");
+
+const manualModeButton =
+    document.getElementById("manualModeButton");
+
+const photoEntryPanel =
+    document.getElementById("photoEntryPanel");
+
+const manualEntryPanel =
+    document.getElementById("manualEntryPanel");
+
+const uploadButton =
+    document.getElementById("uploadButton");
+
+const billImage =
+    document.getElementById("billImage");
+
+const fileStatus =
+    document.getElementById("fileStatus");
+
+const itemsBody =
+    document.getElementById("itemsBody");
+
+const itemCount =
+    document.getElementById("itemCount");
 
 const subtotalElement =
     document.getElementById("subtotal");
 
+const taxElement =
+    document.getElementById("tax");
+
+const serviceChargeElement =
+    document.getElementById("serviceCharge");
+
+const discountElement =
+    document.getElementById("discount");
+
 const totalElement =
     document.getElementById("total");
-
-const itemCount =
-    document.getElementById("itemCount");
 
 const validationCard =
     document.getElementById("validationCard");
@@ -22,11 +58,11 @@ const validationTitle =
 const validationMessage =
     document.getElementById("validationMessage");
 
-const toast =
-    document.getElementById("toast");
-
 const overallConfidence =
     document.getElementById("overallConfidence");
+
+const toast =
+    document.getElementById("toast");
 
 
 // =====================================================
@@ -35,83 +71,38 @@ const overallConfidence =
 
 let bill = {
 
-    items: [
-        {
-            name: "Margherita Pizza",
-            quantity: 2,
-            unit_price: 225,
-            total_price: 450,
+    items: [],
 
-            name_confidence: 0.95,
-            quantity_confidence: 0.96,
-            price_confidence: 0.95,
-            confidence: 0.95,
+    subtotal: 0,
 
-            assigned_to: []
-        },
+    tax: 0,
 
-        {
-            name: "Garlic Bread",
-            quantity: 1,
-            unit_price: 180,
-            total_price: 180,
+    service_charge: 0,
 
-            name_confidence: 0.91,
-            quantity_confidence: 0.95,
-            price_confidence: 0.92,
-            confidence: 0.91,
-
-            assigned_to: []
-        },
-
-        {
-            name: "Coke",
-            quantity: 2,
-            unit_price: 60,
-            total_price: 120,
-
-            name_confidence: 0.96,
-            quantity_confidence: 0.95,
-            price_confidence: 0.96,
-            confidence: 0.96,
-
-            assigned_to: []
-        }
-    ],
-
-    subtotal: 750,
-    tax: 75,
-    service_charge: 30,
     discount: 0,
-    total: 855,
 
-    subtotal_confidence: 0.95,
-    tax_confidence: 0.95,
-    service_charge_confidence: 0.95,
-    discount_confidence: 0.95,
-    total_confidence: 0.95,
+    total: 0,
 
-    confidence: 0.94
+    subtotal_confidence: 0,
+
+    tax_confidence: 0,
+
+    service_charge_confidence: 0,
+
+    discount_confidence: 0,
+
+    total_confidence: 0,
+
+    confidence: 0
+
 };
 
 
 // =====================================================
-// PEOPLE STATE
+// PEOPLE
 // =====================================================
 
-let people = [
-
-    {
-        id: "person-you",
-        name: "You"
-    },
-
-    {
-        id: "person-alex",
-        name: "Alex"
-    }
-
-];
+let people = [];
 
 
 // =====================================================
@@ -139,7 +130,7 @@ function showToast(message) {
 
         toast.classList.remove("show");
 
-    }, 1800);
+    }, 2200);
 
 }
 
@@ -147,10 +138,15 @@ function showToast(message) {
 function escapeHtml(value) {
 
     return String(value)
+
         .replace(/&/g, "&amp;")
+
         .replace(/</g, "&lt;")
+
         .replace(/>/g, "&gt;")
+
         .replace(/"/g, "&quot;")
+
         .replace(/'/g, "&#039;");
 
 }
@@ -158,7 +154,7 @@ function escapeHtml(value) {
 
 function getInitial(name) {
 
-    return String(name)
+    return String(name || "")
         .trim()
         .charAt(0)
         .toUpperCase();
@@ -167,14 +163,795 @@ function getInitial(name) {
 
 
 // =====================================================
-// ASSIGNMENT HELPERS
+// MODE SWITCH
+// =====================================================
+
+function setEntryMode(mode) {
+
+    if (mode === "manual") {
+
+        manualModeButton?.classList.add("active");
+
+        uploadModeButton?.classList.remove("active");
+
+        manualEntryPanel?.classList.remove("hidden");
+
+        photoEntryPanel?.classList.add("hidden");
+
+    } else {
+
+        uploadModeButton?.classList.add("active");
+
+        manualModeButton?.classList.remove("active");
+
+        photoEntryPanel?.classList.remove("hidden");
+
+        manualEntryPanel?.classList.add("hidden");
+
+    }
+
+}
+
+
+uploadModeButton?.addEventListener(
+    "click",
+    () => {
+
+        setEntryMode("photo");
+
+    }
+);
+
+
+manualModeButton?.addEventListener(
+    "click",
+    () => {
+
+        setEntryMode("manual");
+
+        initializeManualBill();
+
+    }
+);
+
+
+// =====================================================
+// PHOTO UPLOAD
+// =====================================================
+
+uploadButton?.addEventListener(
+    "click",
+    () => {
+
+        billImage?.click();
+
+    }
+);
+
+
+billImage?.addEventListener(
+    "change",
+    async () => {
+
+        if (
+            !billImage.files ||
+            billImage.files.length === 0
+        ) {
+
+            return;
+
+        }
+
+
+        const file =
+            billImage.files[0];
+
+
+        const allowedTypes = [
+
+            "image/jpeg",
+            "image/png",
+            "image/jpg",
+            "image/webp"
+
+        ];
+
+
+        if (
+            !allowedTypes.includes(
+                file.type
+            )
+        ) {
+
+            showToast(
+                "Please upload a JPG, PNG or WEBP image."
+            );
+
+            billImage.value = "";
+
+            return;
+
+        }
+
+
+        fileStatus.textContent =
+            file.name;
+
+
+        uploadButton.disabled =
+            true;
+
+
+        uploadButton.textContent =
+            "Extracting...";
+
+
+        showToast(
+            "Reading your bill..."
+        );
+
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "file",
+            file
+        );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/extract",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.detail ||
+                    "Could not extract bill."
+                );
+
+            }
+
+
+            bill =
+                result.bill;
+
+
+            ensureItemAssignments();
+
+            renderItems();
+
+            recalculateBill();
+
+            updateConfidence();
+
+
+            uploadButton.textContent =
+                "Image extracted ✓";
+
+
+            showToast(
+                "Bill extracted successfully ✓"
+            );
+
+
+            document
+                .getElementById("reviewSection")
+                ?.scrollIntoView({
+                    behavior: "smooth"
+                });
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            showToast(
+                error.message ||
+                "Could not read bill."
+            );
+
+
+            uploadButton.textContent =
+                "↑ Choose bill image";
+
+
+        } finally {
+
+            uploadButton.disabled =
+                false;
+
+        }
+
+    }
+);
+
+
+// =====================================================
+// MANUAL BILL
+// =====================================================
+
+let manualBillInitialized =
+    false;
+
+
+function initializeManualBill() {
+
+    if (manualBillInitialized) {
+
+        return;
+
+    }
+
+
+    manualBillInitialized =
+        true;
+
+
+    addManualItem();
+
+
+    document
+        .getElementById("manualAddItem")
+        ?.addEventListener(
+            "click",
+            addManualItem
+        );
+
+
+    document
+        .getElementById("manualTaxEnabled")
+        ?.addEventListener(
+            "change",
+            toggleManualTax
+        );
+
+
+    document
+        .getElementById("manualServiceEnabled")
+        ?.addEventListener(
+            "change",
+            toggleManualService
+        );
+
+
+    document
+        .getElementById("manualTax")
+        ?.addEventListener(
+            "input",
+            calculateManualBill
+        );
+
+
+    document
+        .getElementById("manualService")
+        ?.addEventListener(
+            "input",
+            calculateManualBill
+        );
+
+
+    document
+        .getElementById("manualDiscount")
+        ?.addEventListener(
+            "input",
+            calculateManualBill
+        );
+
+
+    document
+        .getElementById("manualContinue")
+        ?.addEventListener(
+            "click",
+            continueManualBill
+        );
+
+
+    calculateManualBill();
+
+}
+
+
+function toggleManualTax(event) {
+
+    const input =
+        document.getElementById(
+            "manualTax"
+        );
+
+
+    if (input) {
+
+        input.disabled =
+            !event.target.checked;
+
+    }
+
+
+    calculateManualBill();
+
+}
+
+
+function toggleManualService(event) {
+
+    const input =
+        document.getElementById(
+            "manualService"
+        );
+
+
+    if (input) {
+
+        input.disabled =
+            !event.target.checked;
+
+    }
+
+
+    calculateManualBill();
+
+}
+
+
+// =====================================================
+// ADD MANUAL ITEM
+// =====================================================
+
+function addManualItem() {
+
+    const container =
+        document.getElementById(
+            "manualItems"
+        );
+
+
+    if (!container) {
+
+        return;
+
+    }
+
+
+    const row =
+        document.createElement(
+            "div"
+        );
+
+
+    row.className =
+        "manual-item-row";
+
+
+    row.innerHTML = `
+
+        <input
+            type="text"
+            class="manual-item-name"
+            placeholder="Item name"
+        >
+
+        <input
+            type="number"
+            class="manual-item-qty"
+            min="0.01"
+            step="0.01"
+            value="1"
+            placeholder="Qty"
+        >
+
+        <input
+            type="number"
+            class="manual-item-price"
+            min="0"
+            step="0.01"
+            value="0"
+            placeholder="Unit price"
+        >
+
+        <strong
+            class="manual-item-total"
+        >
+            ₹0.00
+        </strong>
+
+        <button
+            type="button"
+            class="manual-remove"
+            title="Remove item"
+        >
+            ×
+        </button>
+
+    `;
+
+
+    container.appendChild(row);
+
+
+    row
+        .querySelectorAll("input")
+        .forEach(input => {
+
+            input.addEventListener(
+                "input",
+                calculateManualBill
+            );
+
+        });
+
+
+    row
+        .querySelector(
+            ".manual-remove"
+        )
+        .addEventListener(
+            "click",
+            () => {
+
+                row.remove();
+
+                calculateManualBill();
+
+            }
+        );
+
+
+    row
+        .querySelector(
+            ".manual-item-name"
+        )
+        ?.focus();
+
+
+    calculateManualBill();
+
+}
+
+
+// =====================================================
+// CALCULATE MANUAL BILL
+// =====================================================
+
+function calculateManualBill() {
+
+    const rows =
+        document.querySelectorAll(
+            ".manual-item-row"
+        );
+
+
+    let subtotal = 0;
+
+
+    rows.forEach(row => {
+
+        const quantity =
+            Number(
+                row.querySelector(
+                    ".manual-item-qty"
+                )?.value || 0
+            );
+
+
+        const price =
+            Number(
+                row.querySelector(
+                    ".manual-item-price"
+                )?.value || 0
+            );
+
+
+        const itemTotal =
+            Number(
+                (
+                    quantity *
+                    price
+                ).toFixed(2)
+            );
+
+
+        subtotal +=
+            itemTotal;
+
+
+        const totalElement =
+            row.querySelector(
+                ".manual-item-total"
+            );
+
+
+        if (totalElement) {
+
+            totalElement.textContent =
+                formatMoney(itemTotal);
+
+        }
+
+    });
+
+
+    subtotal =
+        Number(
+            subtotal.toFixed(2)
+        );
+
+
+    const taxEnabled =
+        document.getElementById(
+            "manualTaxEnabled"
+        )?.checked || false;
+
+
+    const serviceEnabled =
+        document.getElementById(
+            "manualServiceEnabled"
+        )?.checked || false;
+
+
+    const tax =
+        taxEnabled
+            ? Number(
+                document.getElementById(
+                    "manualTax"
+                )?.value || 0
+            )
+            : 0;
+
+
+    const service =
+        serviceEnabled
+            ? Number(
+                document.getElementById(
+                    "manualService"
+                )?.value || 0
+            )
+            : 0;
+
+
+    const discount =
+        Number(
+            document.getElementById(
+                "manualDiscount"
+            )?.value || 0
+        );
+
+
+    const total =
+        Number(
+            (
+                subtotal +
+                tax +
+                service -
+                discount
+            ).toFixed(2)
+        );
+
+
+    document.getElementById(
+        "manualSubtotal"
+    ).textContent =
+        formatMoney(subtotal);
+
+
+    document.getElementById(
+        "manualTaxSummary"
+    ).textContent =
+        formatMoney(tax);
+
+
+    document.getElementById(
+        "manualServiceSummary"
+    ).textContent =
+        formatMoney(service);
+
+
+    document.getElementById(
+        "manualDiscountSummary"
+    ).textContent =
+        `-${formatMoney(discount)}`;
+
+
+    document.getElementById(
+        "manualTotal"
+    ).textContent =
+        formatMoney(total);
+
+
+    return {
+
+        subtotal,
+        tax,
+        service,
+        discount,
+        total
+
+    };
+
+}
+
+
+// =====================================================
+// CONTINUE MANUAL BILL
+// =====================================================
+
+function continueManualBill() {
+
+    const rows =
+        document.querySelectorAll(
+            ".manual-item-row"
+        );
+
+
+    const items = [];
+
+
+    rows.forEach(row => {
+
+        const name =
+            row.querySelector(
+                ".manual-item-name"
+            )?.value.trim();
+
+
+        const quantity =
+            Number(
+                row.querySelector(
+                    ".manual-item-qty"
+                )?.value || 0
+            );
+
+
+        const unitPrice =
+            Number(
+                row.querySelector(
+                    ".manual-item-price"
+                )?.value || 0
+            );
+
+
+        if (
+            name &&
+            quantity > 0 &&
+            unitPrice >= 0
+        ) {
+
+            items.push({
+
+                name,
+
+                quantity,
+
+                unit_price:
+                    unitPrice,
+
+                total_price:
+                    Number(
+                        (
+                            quantity *
+                            unitPrice
+                        ).toFixed(2)
+                    ),
+
+                name_confidence: 1,
+
+                quantity_confidence: 1,
+
+                price_confidence: 1,
+
+                confidence: 1,
+
+                assigned_to: []
+
+            });
+
+        }
+
+    });
+
+
+    if (items.length === 0) {
+
+        showToast(
+            "Please add at least one valid item."
+        );
+
+        return;
+
+    }
+
+
+    const calculated =
+        calculateManualBill();
+
+
+    bill = {
+
+        items,
+
+        subtotal:
+            calculated.subtotal,
+
+        tax:
+            calculated.tax,
+
+        service_charge:
+            calculated.service,
+
+        discount:
+            calculated.discount,
+
+        total:
+            calculated.total,
+
+        subtotal_confidence: 1,
+
+        tax_confidence: 1,
+
+        service_charge_confidence: 1,
+
+        discount_confidence: 1,
+
+        total_confidence: 1,
+
+        confidence: 1
+
+    };
+
+
+    ensureItemAssignments();
+
+    renderItems();
+
+    recalculateBill();
+
+    updateConfidence();
+
+
+    document
+        .getElementById(
+            "reviewSection"
+        )
+        ?.scrollIntoView({
+            behavior: "smooth"
+        });
+
+
+    showToast(
+        "Manual bill created successfully ✓"
+    );
+
+}
+
+
+// =====================================================
+// ASSIGNMENT
 // =====================================================
 
 function ensureItemAssignments() {
 
     bill.items.forEach(item => {
 
-        if (!Array.isArray(item.assigned_to)) {
+        if (
+            !Array.isArray(
+                item.assigned_to
+            )
+        ) {
 
             item.assigned_to = [];
 
@@ -187,17 +964,11 @@ function ensureItemAssignments() {
 
 function getAssignedPeople(item) {
 
-    if (
-        !item.assigned_to ||
-        item.assigned_to.length === 0
-    ) {
-
-        return [];
-
-    }
-
-    return people.filter(person =>
-        item.assigned_to.includes(person.id)
+    return people.filter(
+        person =>
+            item.assigned_to.includes(
+                person.id
+            )
     );
 
 }
@@ -205,11 +976,11 @@ function getAssignedPeople(item) {
 
 function getAssignmentLabel(item) {
 
-    const assignedPeople =
+    const assigned =
         getAssignedPeople(item);
 
 
-    if (assignedPeople.length === 0) {
+    if (assigned.length === 0) {
 
         return "Assign people";
 
@@ -217,7 +988,7 @@ function getAssignmentLabel(item) {
 
 
     if (
-        assignedPeople.length ===
+        assigned.length ===
         people.length
     ) {
 
@@ -226,23 +997,23 @@ function getAssignmentLabel(item) {
     }
 
 
-    if (assignedPeople.length === 1) {
+    if (assigned.length === 1) {
 
-        return assignedPeople[0].name;
+        return assigned[0].name;
 
     }
 
 
-    if (assignedPeople.length === 2) {
+    if (assigned.length === 2) {
 
-        return assignedPeople
+        return assigned
             .map(person => person.name)
             .join(" + ");
 
     }
 
 
-    return `${assignedPeople.length} people`;
+    return `${assigned.length} people`;
 
 }
 
@@ -254,254 +1025,258 @@ function getAssignmentLabel(item) {
 function renderItems() {
 
     if (!itemsBody) {
+
         return;
+
     }
 
+
     ensureItemAssignments();
+
 
     itemsBody.innerHTML = "";
 
 
-    bill.items.forEach((item, index) => {
+    bill.items.forEach(
+        (item, index) => {
 
-        const row =
-            document.createElement("tr");
-
-
-        const confidencePercent =
-            Math.round(
-                (item.confidence ?? 0) * 100
-            );
+            const row =
+                document.createElement(
+                    "tr"
+                );
 
 
-        let confidenceClass =
-            "confidence-medium";
+            const confidence =
+                Math.round(
+                    Number(
+                        item.confidence || 0
+                    ) * 100
+                );
 
 
-        if (confidencePercent >= 85) {
-
-            confidenceClass =
-                "confidence-high";
-
-        } else if (confidencePercent < 70) {
-
-            confidenceClass =
-                "confidence-low";
-
-        }
+            let confidenceClass =
+                "confidence-medium";
 
 
-        row.innerHTML = `
+            if (confidence >= 85) {
 
-            <td>
+                confidenceClass =
+                    "confidence-high";
 
-                <input
-                    class="edit-input item-name"
-                    value="${escapeHtml(item.name)}"
-                    data-field="name"
-                    data-index="${index}"
-                >
+            } else if (
+                confidence < 70
+            ) {
 
-            </td>
+                confidenceClass =
+                    "confidence-low";
 
-
-            <td>
-
-                <input
-                    class="edit-input"
-                    type="number"
-                    min="0.01"
-                    step="0.01"
-                    value="${item.quantity}"
-                    data-field="quantity"
-                    data-index="${index}"
-                >
-
-            </td>
+            }
 
 
-            <td>
+            row.innerHTML = `
 
-                <input
-                    class="edit-input"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value="${item.unit_price}"
-                    data-field="unit_price"
-                    data-index="${index}"
-                >
+                <td>
 
-            </td>
-
-
-            <td>
-
-                <strong>
-                    ${formatMoney(item.total_price)}
-                </strong>
-
-            </td>
-
-
-            <td>
-
-                <div class="assignment-control">
-
-                    <button
-                        type="button"
-                        class="assignment-trigger"
-                        data-assignment-trigger="${index}"
+                    <input
+                        class="edit-input"
+                        data-index="${index}"
+                        data-field="name"
+                        value="${escapeHtml(item.name)}"
                     >
 
-                        <span>
-                            ${escapeHtml(
-                                getAssignmentLabel(item)
-                            )}
-                        </span>
-
-                        <span>
-                            ▾
-                        </span>
-
-                    </button>
+                </td>
 
 
-                    <div
-                        class="assignment-menu"
-                        data-assignment-menu="${index}"
-                        style="display:none;"
+                <td>
+
+                    <input
+                        class="edit-input"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        data-index="${index}"
+                        data-field="quantity"
+                        value="${item.quantity}"
                     >
 
-                        <label class="assignment-option">
+                </td>
 
-                            <input
-                                type="checkbox"
-                                data-everyone="${index}"
-                                ${
-                                    people.length > 0 &&
-                                    item.assigned_to.length === people.length
-                                        ? "checked"
-                                        : ""
-                                }
-                            >
+
+                <td>
+
+                    <input
+                        class="edit-input"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        data-index="${index}"
+                        data-field="unit_price"
+                        value="${item.unit_price}"
+                    >
+
+                </td>
+
+
+                <td>
+
+                    <strong>
+                        ${formatMoney(item.total_price)}
+                    </strong>
+
+                </td>
+
+
+                <td>
+
+                    <div class="assignment-control">
+
+                        <button
+                            type="button"
+                            class="assignment-trigger"
+                            data-assignment-trigger="${index}"
+                        >
 
                             <span>
-                                Everyone
+                                ${escapeHtml(
+                                    getAssignmentLabel(item)
+                                )}
                             </span>
 
-                        </label>
+                            <span>
+                                ▾
+                            </span>
+
+                        </button>
 
 
                         <div
-                            style="
-                                height:1px;
-                                background:#eeeeeb;
-                                margin:5px 0;
-                            "
-                        ></div>
-
-
-                        ${people.map(person => `
+                            class="assignment-menu"
+                            data-assignment-menu="${index}"
+                            style="display:none;"
+                        >
 
                             <label class="assignment-option">
 
                                 <input
                                     type="checkbox"
-                                    class="person-assignment"
-                                    data-item="${index}"
-                                    data-person="${person.id}"
+                                    data-everyone="${index}"
                                     ${
-                                        item.assigned_to.includes(
-                                            person.id
-                                        )
+                                        people.length > 0 &&
+                                        item.assigned_to.length === people.length
                                             ? "checked"
                                             : ""
                                     }
                                 >
 
                                 <span>
-                                    ${escapeHtml(person.name)}
+                                    Everyone
                                 </span>
 
                             </label>
 
-                        `).join("")}
+
+                            ${people.map(person => `
+
+                                <label class="assignment-option">
+
+                                    <input
+                                        type="checkbox"
+                                        class="person-assignment"
+                                        data-item="${index}"
+                                        data-person="${person.id}"
+                                        ${
+                                            item.assigned_to.includes(
+                                                person.id
+                                            )
+                                                ? "checked"
+                                                : ""
+                                        }
+                                    >
+
+                                    <span>
+                                        ${escapeHtml(person.name)}
+                                    </span>
+
+                                </label>
+
+                            `).join("")}
+
+                        </div>
 
                     </div>
 
-                </div>
-
-            </td>
+                </td>
 
 
-            <td>
+                <td>
 
-                <span
-                    class="confidence-badge ${confidenceClass}"
-                >
-                    ${confidencePercent}%
-                </span>
+                    <span
+                        class="confidence-badge ${confidenceClass}"
+                    >
+                        ${confidence}%
+                    </span>
 
-            </td>
-
-
-            <td>
-
-                <button
-                    class="delete-button"
-                    data-delete="${index}"
-                    title="Remove item"
-                    type="button"
-                >
-                    ×
-                </button>
-
-            </td>
-
-        `;
+                </td>
 
 
-        itemsBody.appendChild(row);
+                <td>
 
-    });
+                    <button
+                        type="button"
+                        class="delete-button"
+                        data-delete="${index}"
+                    >
+                        ×
+                    </button>
+
+                </td>
+
+            `;
+
+
+            itemsBody.appendChild(row);
+
+        }
+    );
 
 
     if (itemCount) {
 
         itemCount.textContent =
-            `${bill.items.length} items detected`;
+            `${bill.items.length} items`;
 
     }
 
 
-    attachInputHandlers();
-
-    attachAssignmentHandlers();
+    attachItemHandlers();
 
 }
 
 
 // =====================================================
-// ITEM INPUT HANDLERS
+// ITEM HANDLERS
 // =====================================================
 
-function attachInputHandlers() {
+function attachItemHandlers() {
 
     document
-        .querySelectorAll(".edit-input")
+        .querySelectorAll(
+            ".edit-input"
+        )
         .forEach(input => {
 
             input.addEventListener(
                 "input",
-                handleEdit
+                handleItemEdit
             );
 
         });
 
 
     document
-        .querySelectorAll("[data-delete]")
+        .querySelectorAll(
+            "[data-delete]"
+        )
         .forEach(button => {
 
             button.addEventListener(
@@ -511,158 +1286,6 @@ function attachInputHandlers() {
 
         });
 
-}
-
-
-// =====================================================
-// EDIT ITEM
-// =====================================================
-
-function handleEdit(event) {
-
-    const input =
-        event.target;
-
-    const index =
-        Number(input.dataset.index);
-
-    const field =
-        input.dataset.field;
-
-
-    if (!bill.items[index]) {
-        return;
-    }
-
-
-    if (field === "name") {
-
-        bill.items[index].name =
-            input.value;
-
-    } else {
-
-        bill.items[index][field] =
-            Number(input.value) || 0;
-
-    }
-
-
-    bill.items[index].total_price =
-        Number(
-            (
-                bill.items[index].quantity *
-                bill.items[index].unit_price
-            ).toFixed(2)
-        );
-
-
-    recalculateBill();
-
-}
-
-
-// =====================================================
-// DELETE ITEM
-// =====================================================
-
-function deleteItem(event) {
-
-    const index =
-        Number(
-            event.currentTarget.dataset.delete
-        );
-
-
-    if (
-        Number.isNaN(index) ||
-        !bill.items[index]
-    ) {
-
-        return;
-
-    }
-
-
-    const removedItem =
-        bill.items[index].name;
-
-
-    bill.items.splice(index, 1);
-
-
-    renderItems();
-
-    recalculateBill();
-
-
-    showToast(
-        `${removedItem} removed`
-    );
-
-}
-
-
-// =====================================================
-// ADD ITEM
-// =====================================================
-
-const addItemButton =
-    document.getElementById(
-        "addItemButton"
-    );
-
-
-if (addItemButton) {
-
-    addItemButton.addEventListener(
-        "click",
-        () => {
-
-            bill.items.push({
-
-                name: "New Item",
-
-                quantity: 1,
-
-                unit_price: 0,
-
-                total_price: 0,
-
-                name_confidence: 1,
-
-                quantity_confidence: 1,
-
-                price_confidence: 1,
-
-                confidence: 1,
-
-                assigned_to: people.map(
-                    person => person.id
-                )
-
-            });
-
-
-            renderItems();
-
-            recalculateBill();
-
-            showToast(
-                "New item added"
-            );
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// ASSIGNMENT UI
-// =====================================================
-
-function attachAssignmentHandlers() {
 
     document
         .querySelectorAll(
@@ -709,7 +1332,194 @@ function attachAssignmentHandlers() {
 
 
 // =====================================================
-// TOGGLE ASSIGNMENT MENU
+// EDIT ITEM
+// =====================================================
+
+function handleItemEdit(event) {
+
+    const input =
+        event.target;
+
+
+    const index =
+        Number(
+            input.dataset.index
+        );
+
+
+    const field =
+        input.dataset.field;
+
+
+    if (!bill.items[index]) {
+
+        return;
+
+    }
+
+
+    if (field === "name") {
+
+        bill.items[index].name =
+            input.value;
+
+    } else {
+
+        bill.items[index][field] =
+            Number(input.value) || 0;
+
+    }
+
+
+    bill.items[index].total_price =
+        Number(
+            (
+                bill.items[index].quantity *
+                bill.items[index].unit_price
+            ).toFixed(2)
+        );
+
+
+    recalculateBill();
+
+    refreshItemTotalOnly(
+        index
+    );
+
+}
+
+
+function refreshItemTotalOnly(index) {
+
+    const rows =
+        itemsBody.querySelectorAll(
+            "tr"
+        );
+
+
+    const row =
+        rows[index];
+
+
+    if (!row) {
+
+        return;
+
+    }
+
+
+    const total =
+        row.querySelector(
+            "td:nth-child(4) strong"
+        );
+
+
+    if (total) {
+
+        total.textContent =
+            formatMoney(
+                bill.items[index].total_price
+            );
+
+    }
+
+}
+
+
+// =====================================================
+// DELETE ITEM
+// =====================================================
+
+function deleteItem(event) {
+
+    const index =
+        Number(
+            event.currentTarget.dataset.delete
+        );
+
+
+    if (
+        Number.isNaN(index) ||
+        !bill.items[index]
+    ) {
+
+        return;
+
+    }
+
+
+    const name =
+        bill.items[index].name;
+
+
+    bill.items.splice(
+        index,
+        1
+    );
+
+
+    renderItems();
+
+    recalculateBill();
+
+
+    showToast(
+        `${name} removed`
+    );
+
+}
+
+
+// =====================================================
+// ADD REVIEW ITEM
+// =====================================================
+
+document
+    .getElementById(
+        "addItemButton"
+    )
+    ?.addEventListener(
+        "click",
+        () => {
+
+            bill.items.push({
+
+                name: "New Item",
+
+                quantity: 1,
+
+                unit_price: 0,
+
+                total_price: 0,
+
+                name_confidence: 1,
+
+                quantity_confidence: 1,
+
+                price_confidence: 1,
+
+                confidence: 1,
+
+                assigned_to: []
+
+            });
+
+
+            renderItems();
+
+            recalculateBill();
+
+
+            showToast(
+                "New item added"
+            );
+
+        }
+    );
+
+
+// =====================================================
+// ASSIGNMENT MENU
 // =====================================================
 
 function toggleAssignmentMenu(event) {
@@ -728,17 +1538,21 @@ function toggleAssignmentMenu(event) {
 
 
     if (!menu) {
+
         return;
+
     }
 
 
     document
-        .querySelectorAll(".assignment-menu")
-        .forEach(otherMenu => {
+        .querySelectorAll(
+            ".assignment-menu"
+        )
+        .forEach(other => {
 
-            if (otherMenu !== menu) {
+            if (other !== menu) {
 
-                otherMenu.style.display =
+                other.style.display =
                     "none";
 
             }
@@ -751,15 +1565,8 @@ function toggleAssignmentMenu(event) {
             ? "block"
             : "none";
 
-
-    updateEveryoneCheckbox(index);
-
 }
 
-
-// =====================================================
-// EVERYONE
-// =====================================================
 
 function handleEveryoneAssignment(event) {
 
@@ -770,7 +1577,9 @@ function handleEveryoneAssignment(event) {
 
 
     if (!bill.items[index]) {
+
         return;
+
     }
 
 
@@ -783,12 +1592,14 @@ function handleEveryoneAssignment(event) {
 
     } else {
 
-        bill.items[index].assigned_to = [];
+        bill.items[index].assigned_to =
+            [];
 
     }
 
 
     renderItems();
+
 
     showToast(
         event.target.checked
@@ -798,10 +1609,6 @@ function handleEveryoneAssignment(event) {
 
 }
 
-
-// =====================================================
-// INDIVIDUAL PERSON ASSIGNMENT
-// =====================================================
 
 function handlePersonAssignment(event) {
 
@@ -816,7 +1623,9 @@ function handlePersonAssignment(event) {
 
 
     if (!bill.items[index]) {
+
         return;
+
     }
 
 
@@ -826,7 +1635,8 @@ function handlePersonAssignment(event) {
         )
     ) {
 
-        bill.items[index].assigned_to = [];
+        bill.items[index].assigned_to =
+            [];
 
     }
 
@@ -847,61 +1657,26 @@ function handlePersonAssignment(event) {
 
     } else {
 
-        bill.items[index].assigned_to =
+        bill.items[index]
+            .assigned_to =
             bill.items[index]
                 .assigned_to
                 .filter(
-                    id => id !== personId
+                    id =>
+                        id !== personId
                 );
 
     }
 
 
-    updateAssignmentTrigger(index);
-
-    updateEveryoneCheckbox(index);
-
-
-    showToast(
-        "Assignment updated"
+    updateAssignmentLabel(
+        index
     );
 
 }
 
 
-// =====================================================
-// UPDATE EVERYONE CHECKBOX
-// =====================================================
-
-function updateEveryoneCheckbox(index) {
-
-    const checkbox =
-        document.querySelector(
-            `[data-everyone="${index}"]`
-        );
-
-
-    if (!checkbox || !bill.items[index]) {
-        return;
-    }
-
-
-    const assigned =
-        bill.items[index].assigned_to || [];
-
-
-    checkbox.checked =
-        people.length > 0 &&
-        assigned.length === people.length;
-
-}
-
-
-// =====================================================
-// UPDATE ASSIGNMENT LABEL
-// =====================================================
-
-function updateAssignmentTrigger(index) {
+function updateAssignmentLabel(index) {
 
     const button =
         document.querySelector(
@@ -909,24 +1684,27 @@ function updateAssignmentTrigger(index) {
         );
 
 
-    if (!button || !bill.items[index]) {
+    if (!button) {
+
         return;
+
     }
 
 
     const span =
-        button.querySelector("span");
-
-
-    if (!span) {
-        return;
-    }
-
-
-    span.textContent =
-        getAssignmentLabel(
-            bill.items[index]
+        button.querySelector(
+            "span"
         );
+
+
+    if (span) {
+
+        span.textContent =
+            getAssignmentLabel(
+                bill.items[index]
+            );
+
+    }
 
 }
 
@@ -966,10 +1744,263 @@ document.addEventListener(
 
 
 // =====================================================
+// ADD MEMBER
+// =====================================================
+
+document
+    .getElementById(
+        "addPersonButton"
+    )
+    ?.addEventListener(
+        "click",
+        addMember
+    );
+
+
+document
+    .getElementById(
+        "memberNameInput"
+    )
+    ?.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                addMember();
+
+            }
+
+        }
+    );
+
+
+function addMember() {
+
+    const input =
+        document.getElementById(
+            "memberNameInput"
+        );
+
+
+    const name =
+        input?.value.trim();
+
+
+    if (!name) {
+
+        showToast(
+            "Enter a member name first."
+        );
+
+        input?.focus();
+
+        return;
+
+    }
+
+
+    const duplicate =
+        people.some(
+            person =>
+                person.name.toLowerCase() ===
+                name.toLowerCase()
+        );
+
+
+    if (duplicate) {
+
+        showToast(
+            "This member already exists."
+        );
+
+        input?.focus();
+
+        return;
+
+    }
+
+
+    const person = {
+
+        id:
+            `person-${Date.now()}-${Math.random()
+                .toString(16)
+                .slice(2)}`,
+
+        name
+
+    };
+
+
+    people.push(person);
+
+
+    input.value = "";
+
+
+    renderPeople();
+
+    renderItems();
+
+
+    showToast(
+        `${name} added ✓`
+    );
+
+}
+
+
+function renderPeople() {
+
+    const peopleList =
+        document.getElementById(
+            "peopleList"
+        );
+
+
+    if (!peopleList) {
+
+        return;
+
+    }
+
+
+    peopleList.innerHTML = "";
+
+
+    people.forEach(person => {
+
+        const element =
+            document.createElement(
+                "div"
+            );
+
+
+        element.className =
+            "person";
+
+
+        element.innerHTML = `
+
+            <div class="person-avatar">
+                ${escapeHtml(
+                    getInitial(
+                        person.name
+                    )
+                )}
+            </div>
+
+            <span class="person-name">
+                ${escapeHtml(
+                    person.name
+                )}
+            </span>
+
+            <button
+                type="button"
+                class="remove-person-button"
+                data-person-id="${person.id}"
+            >
+                ×
+            </button>
+
+        `;
+
+
+        element
+            .querySelector(
+                ".remove-person-button"
+            )
+            .addEventListener(
+                "click",
+                () => {
+
+                    removeMember(
+                        person.id
+                    );
+
+                }
+            );
+
+
+        peopleList.appendChild(
+            element
+        );
+
+    });
+
+}
+
+
+function removeMember(personId) {
+
+    const person =
+        people.find(
+            item =>
+                item.id === personId
+        );
+
+
+    if (!person) {
+
+        return;
+
+    }
+
+
+    people =
+        people.filter(
+            item =>
+                item.id !== personId
+        );
+
+
+    bill.items.forEach(item => {
+
+        item.assigned_to =
+            (
+                item.assigned_to || []
+            ).filter(
+                id =>
+                    id !== personId
+            );
+
+    });
+
+
+    renderPeople();
+
+    renderItems();
+
+
+    showToast(
+        `${person.name} removed`
+    );
+
+}
+
+
+// =====================================================
 // RECALCULATE BILL
 // =====================================================
 
 function recalculateBill() {
+
+    bill.items.forEach(item => {
+
+        item.total_price =
+            Number(
+                (
+                    Number(item.quantity || 0) *
+                    Number(item.unit_price || 0)
+                ).toFixed(2)
+            );
+
+    });
+
 
     bill.subtotal =
         Number(
@@ -1007,20 +2038,6 @@ function recalculateBill() {
     }
 
 
-    if (totalElement) {
-
-        totalElement.textContent =
-            formatMoney(
-                bill.total
-            );
-
-    }
-
-
-    const taxElement =
-        document.getElementById("tax");
-
-
     if (taxElement) {
 
         taxElement.textContent =
@@ -1029,12 +2046,6 @@ function recalculateBill() {
             );
 
     }
-
-
-    const serviceChargeElement =
-        document.getElementById(
-            "serviceCharge"
-        );
 
 
     if (serviceChargeElement) {
@@ -1047,18 +2058,22 @@ function recalculateBill() {
     }
 
 
-    const discountElement =
-        document.getElementById(
-            "discount"
-        );
-
-
     if (discountElement) {
 
         discountElement.textContent =
             `-${formatMoney(
                 bill.discount
             )}`;
+
+    }
+
+
+    if (totalElement) {
+
+        totalElement.textContent =
+            formatMoney(
+                bill.total
+            );
 
     }
 
@@ -1071,19 +2086,11 @@ function recalculateBill() {
 
 function updateConfidence() {
 
-    if (
-        bill.confidence === undefined ||
-        bill.confidence === null
-    ) {
-
-        return;
-
-    }
-
-
     const confidence =
         Math.round(
-            bill.confidence * 100
+            Number(
+                bill.confidence || 0
+            ) * 100
         );
 
 
@@ -1095,31 +2102,35 @@ function updateConfidence() {
     }
 
 
-    const confidenceDot =
+    const dot =
         document.querySelector(
             ".confidence-dot"
         );
 
 
-    if (!confidenceDot) {
+    if (!dot) {
+
         return;
+
     }
 
 
     if (confidence < 70) {
 
-        confidenceDot.style.background =
-            "#e14d64";
+        dot.style.background =
+            "#b94a48";
 
-    } else if (confidence < 85) {
+    } else if (
+        confidence < 85
+    ) {
 
-        confidenceDot.style.background =
-            "#d88a13";
+        dot.style.background =
+            "#8a7226";
 
     } else {
 
-        confidenceDot.style.background =
-            "#17a673";
+        dot.style.background =
+            "#287a52";
 
     }
 
@@ -1130,15 +2141,11 @@ function updateConfidence() {
 // RECALCULATE BUTTON
 // =====================================================
 
-const recalculateButton =
-    document.getElementById(
+document
+    .getElementById(
         "recalculateButton"
-    );
-
-
-if (recalculateButton) {
-
-    recalculateButton.addEventListener(
+    )
+    ?.addEventListener(
         "click",
         () => {
 
@@ -1149,35 +2156,42 @@ if (recalculateButton) {
             updateConfidence();
 
             showToast(
-                "Bill recalculated"
+                "Bill recalculated ✓"
             );
 
         }
     );
-
-}
 
 
 // =====================================================
 // VALIDATE BILL
 // =====================================================
 
-const validateButton =
-    document.getElementById(
+document
+    .getElementById(
         "validateButton"
-    );
-
-
-if (validateButton) {
-
-    validateButton.addEventListener(
+    )
+    ?.addEventListener(
         "click",
         async () => {
 
+            if (
+                bill.items.length === 0
+            ) {
+
+                showToast(
+                    "Add a bill first."
+                );
+
+                return;
+
+            }
+
+
+            recalculateBill();
+
+
             try {
-
-                recalculateBill();
-
 
                 const response =
                     await fetch(
@@ -1206,7 +2220,7 @@ if (validateButton) {
 
                     throw new Error(
                         result.detail ||
-                        "Validation request failed"
+                        "Validation failed."
                     );
 
                 }
@@ -1216,30 +2230,20 @@ if (validateButton) {
                     result.validation;
 
 
-                if (validation.valid) {
+                if (
+                    validation.valid
+                ) {
 
-                    if (validationCard) {
-
-                        validationCard.className =
-                            "validation-card valid";
-
-                    }
+                    validationCard.className =
+                        "validation-card";
 
 
-                    if (validationTitle) {
-
-                        validationTitle.textContent =
-                            "Bill looks consistent";
-
-                    }
+                    validationTitle.textContent =
+                        "Bill looks consistent";
 
 
-                    if (validationMessage) {
-
-                        validationMessage.textContent =
-                            "All extracted values passed arithmetic validation.";
-
-                    }
+                    validationMessage.textContent =
+                        "All item totals and bill amounts passed arithmetic validation.";
 
 
                     showToast(
@@ -1248,28 +2252,18 @@ if (validateButton) {
 
                 } else {
 
-                    if (validationCard) {
-
-                        validationCard.className =
-                            "validation-card warning";
-
-                    }
+                    validationCard.className =
+                        "validation-card warning";
 
 
-                    if (validationTitle) {
-
-                        validationTitle.textContent =
-                            "Review required";
-
-                    }
+                    validationTitle.textContent =
+                        "Review required";
 
 
-                    if (validationMessage) {
-
-                        validationMessage.textContent =
-                            validation.errors.join(" ");
-
-                    }
+                    validationMessage.textContent =
+                        validation.errors.join(
+                            " "
+                        );
 
 
                     showToast(
@@ -1285,429 +2279,54 @@ if (validateButton) {
 
                 showToast(
                     error.message ||
-                    "Could not validate bill"
+                    "Could not validate bill."
                 );
 
             }
 
         }
     );
-
-}
-
-
-// =====================================================
-// UPLOAD BILL IMAGE
-// =====================================================
-
-const uploadButton =
-    document.getElementById(
-        "uploadButton"
-    );
-
-
-const billImage =
-    document.getElementById(
-        "billImage"
-    );
-
-
-if (uploadButton && billImage) {
-
-    uploadButton.addEventListener(
-        "click",
-        () => {
-
-            billImage.click();
-
-        }
-    );
-
-
-    billImage.addEventListener(
-        "change",
-        async () => {
-
-            if (
-                !billImage.files ||
-                billImage.files.length === 0
-            ) {
-
-                return;
-
-            }
-
-
-            const file =
-                billImage.files[0];
-
-
-            const allowedTypes = [
-                "image/jpeg",
-                "image/png",
-                "image/jpg",
-                "image/webp"
-            ];
-
-
-            if (
-                !allowedTypes.includes(
-                    file.type
-                )
-            ) {
-
-                showToast(
-                    "Please upload a JPG, PNG or WEBP image."
-                );
-
-                billImage.value = "";
-
-                return;
-
-            }
-
-
-            uploadButton.textContent =
-                "Extracting...";
-
-
-            uploadButton.disabled =
-                true;
-
-
-            showToast(
-                "Reading your bill..."
-            );
-
-
-            const formData =
-                new FormData();
-
-
-            formData.append(
-                "file",
-                file
-            );
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        "/extract",
-                        {
-                            method: "POST",
-                            body: formData
-                        }
-                    );
-
-
-                const result =
-                    await response.json();
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        result.detail ||
-                        "Could not extract bill"
-                    );
-
-                }
-
-
-                bill =
-                    result.bill;
-
-
-                ensureItemAssignments();
-
-
-                renderItems();
-
-                recalculateBill();
-
-                updateConfidence();
-
-
-                uploadButton.textContent =
-                    "Image extracted ✓";
-
-
-                showToast(
-                    "Bill extracted successfully ✓"
-                );
-
-
-            } catch (error) {
-
-                console.error(error);
-
-
-                uploadButton.textContent =
-                    "Choose bill image";
-
-
-                showToast(
-                    error.message ||
-                    "Could not read bill"
-                );
-
-
-            } finally {
-
-                uploadButton.disabled =
-                    false;
-
-            }
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// PEOPLE
-// =====================================================
-
-function renderPeople() {
-
-    const peopleList =
-        document.getElementById(
-            "peopleList"
-        );
-
-
-    if (!peopleList) {
-        return;
-    }
-
-
-    peopleList.innerHTML = "";
-
-
-    people.forEach(person => {
-
-        const personElement =
-            document.createElement(
-                "div"
-            );
-
-
-        personElement.className =
-            "person";
-
-
-        personElement.dataset.personId =
-            person.id;
-
-
-        personElement.innerHTML = `
-
-            <div class="person-avatar">
-
-                ${escapeHtml(
-                    getInitial(
-                        person.name
-                    )
-                )}
-
-            </div>
-
-
-            <span class="person-name">
-
-                ${escapeHtml(
-                    person.name
-                )}
-
-            </span>
-
-
-            <button
-                class="remove-person-button"
-                type="button"
-                data-person-id="${person.id}"
-                title="Remove member"
-                aria-label="Remove ${escapeHtml(
-                    person.name
-                )}"
-            >
-
-                ×
-
-            </button>
-
-        `;
-
-
-        peopleList.appendChild(
-            personElement
-        );
-
-    });
-
-
-    attachPersonHandlers();
-
-    renderItems();
-
-}
-
-
-// =====================================================
-// MEMBER HANDLERS
-// =====================================================
-
-function attachPersonHandlers() {
-
-    document
-        .querySelectorAll(
-            ".remove-person-button"
-        )
-        .forEach(button => {
-
-            button.addEventListener(
-                "click",
-                removePerson
-            );
-
-        });
-
-}
-
-
-// =====================================================
-// REMOVE MEMBER
-// =====================================================
-
-function removePerson(event) {
-
-    const personId =
-        event.currentTarget.dataset.personId;
-
-
-    const person =
-        people.find(
-            item =>
-                item.id === personId
-        );
-
-
-    if (!person) {
-        return;
-    }
-
-
-    if (people.length === 1) {
-
-        showToast(
-            "At least one member is required"
-        );
-
-        return;
-
-    }
-
-
-    people =
-        people.filter(
-            item =>
-                item.id !== personId
-        );
-
-
-    bill.items.forEach(item => {
-
-        if (
-            Array.isArray(
-                item.assigned_to
-            )
-        ) {
-
-            item.assigned_to =
-                item.assigned_to.filter(
-                    id => id !== personId
-                );
-
-        }
-
-    });
-
-
-    renderPeople();
-
-
-    showToast(
-        `${person.name} removed`
-    );
-
-}
-
-
-// =====================================================
-// ADD MEMBER
-// =====================================================
-
-const addPersonButton =
-    document.getElementById(
-        "addPersonButton"
-    );
-
-
-if (addPersonButton) {
-
-    addPersonButton.addEventListener(
-        "click",
-        () => {
-
-            const newPerson = {
-
-                id:
-                    `person-${Date.now()}`,
-
-                name:
-                    `Person ${people.length + 1}`
-
-            };
-
-
-            people.push(
-                newPerson
-            );
-
-
-            renderPeople();
-
-
-            showToast(
-                "Member added"
-            );
-
-        }
-    );
-
-}
 
 
 // =====================================================
 // SPLIT BILL
 // =====================================================
 
-const splitButton =
-    document.getElementById(
+document
+    .getElementById(
         "splitButton"
-    );
-
-
-if (splitButton) {
-
-    splitButton.addEventListener(
+    )
+    ?.addEventListener(
         "click",
         async () => {
 
-            const unassignedItems =
+            if (
+                bill.items.length === 0
+            ) {
+
+                showToast(
+                    "Add a bill first."
+                );
+
+                return;
+
+            }
+
+
+            if (
+                people.length === 0
+            ) {
+
+                showToast(
+                    "Add at least one member."
+                );
+
+                return;
+
+            }
+
+
+            const unassigned =
                 bill.items.filter(
                     item =>
                         !item.assigned_to ||
@@ -1716,7 +2335,7 @@ if (splitButton) {
 
 
             if (
-                unassignedItems.length > 0
+                unassigned.length > 0
             ) {
 
                 showToast(
@@ -1728,21 +2347,15 @@ if (splitButton) {
             }
 
 
-            if (people.length === 0) {
-
-                showToast(
-                    "Add at least one member."
+            const splitButton =
+                document.getElementById(
+                    "splitButton"
                 );
 
-                return;
 
-            }
+            splitButton.disabled =
+                true;
 
-
-            splitButton.disabled = true;
-
-            const originalText =
-                splitButton.textContent;
 
             splitButton.textContent =
                 "Calculating...";
@@ -1766,8 +2379,8 @@ if (splitButton) {
 
                             body:
                                 JSON.stringify({
-                                    bill: bill,
-                                    people: people
+                                    bill,
+                                    people
                                 })
                         }
                     );
@@ -1796,7 +2409,6 @@ if (splitButton) {
                     "Bill split successfully ✓"
                 );
 
-
             } catch (error) {
 
                 console.error(error);
@@ -1809,17 +2421,16 @@ if (splitButton) {
 
             } finally {
 
-                splitButton.disabled = false;
+                splitButton.disabled =
+                    false;
 
                 splitButton.textContent =
-                    originalText;
+                    "Split bill →";
 
             }
 
         }
     );
-
-}
 
 
 // =====================================================
@@ -1828,45 +2439,15 @@ if (splitButton) {
 
 function renderSplitResults(data) {
 
-    let resultsContainer =
+    const container =
         document.getElementById(
             "splitResults"
         );
 
 
-    if (!resultsContainer) {
+    if (!container) {
 
-        resultsContainer =
-            document.createElement(
-                "section"
-            );
-
-        resultsContainer.id =
-            "splitResults";
-
-        resultsContainer.className =
-            "split-results-section";
-
-
-        const finalActionBar =
-            document.querySelector(
-                ".final-action"
-            );
-
-
-        if (finalActionBar) {
-
-            finalActionBar.before(
-                resultsContainer
-            );
-
-        } else {
-
-            document.body.appendChild(
-                resultsContainer
-            );
-
-        }
+        return;
 
     }
 
@@ -1875,14 +2456,19 @@ function renderSplitResults(data) {
         data.results || [];
 
 
-    resultsContainer.innerHTML = `
+    container.classList.remove(
+        "hidden"
+    );
 
-        <div class="section-heading">
+
+    container.innerHTML = `
+
+        <div class="results-heading">
 
             <div>
 
-                <span class="section-eyebrow">
-                    FINAL SPLIT
+                <span class="mini-label">
+                    STEP 04 · FINAL SPLIT
                 </span>
 
                 <h2>
@@ -1890,20 +2476,23 @@ function renderSplitResults(data) {
                 </h2>
 
                 <p>
-                    Amounts are calculated from actual item consumption.
-                    Tax and service charge are distributed proportionally.
+                    Tax and service charge are allocated
+                    according to actual consumption.
                 </p>
 
             </div>
 
-            <div class="split-total">
+
+            <div class="results-total">
 
                 <span>
                     BILL TOTAL
                 </span>
 
                 <strong>
-                    ${formatMoney(data.total)}
+                    ${formatMoney(
+                        data.total
+                    )}
                 </strong>
 
             </div>
@@ -1911,29 +2500,31 @@ function renderSplitResults(data) {
         </div>
 
 
-        <div class="split-results-grid">
+        <div class="results-grid">
 
             ${results.map(result => `
 
-                <article class="split-person-card">
+                <article class="result-card">
 
-                    <div class="split-person-header">
+                    <div class="result-header">
 
-                        <div class="person-avatar">
+                        <div class="result-avatar">
+
                             ${escapeHtml(
                                 getInitial(
                                     result.person_name
                                 )
                             )}
+
                         </div>
 
                         <div>
 
-                            <h3>
+                            <strong>
                                 ${escapeHtml(
                                     result.person_name
                                 )}
-                            </h3>
+                            </strong>
 
                             <span>
                                 Final amount
@@ -1944,9 +2535,10 @@ function renderSplitResults(data) {
                     </div>
 
 
-                    <div class="split-breakdown">
+                    <div class="result-breakdown">
 
                         <div>
+
                             <span>
                                 Items consumed
                             </span>
@@ -1956,10 +2548,12 @@ function renderSplitResults(data) {
                                     result.item_total
                                 )}
                             </strong>
+
                         </div>
 
 
                         <div>
+
                             <span>
                                 Tax
                             </span>
@@ -1969,10 +2563,12 @@ function renderSplitResults(data) {
                                     result.tax
                                 )}
                             </strong>
+
                         </div>
 
 
                         <div>
+
                             <span>
                                 Service charge
                             </span>
@@ -1982,10 +2578,12 @@ function renderSplitResults(data) {
                                     result.service_charge
                                 )}
                             </strong>
+
                         </div>
 
 
                         <div>
+
                             <span>
                                 Discount
                             </span>
@@ -1995,12 +2593,13 @@ function renderSplitResults(data) {
                                     result.discount
                                 )}
                             </strong>
+
                         </div>
 
                     </div>
 
 
-                    <div class="split-final">
+                    <div class="result-final">
 
                         <span>
                             YOU PAY
@@ -2023,7 +2622,7 @@ function renderSplitResults(data) {
     `;
 
 
-    resultsContainer.scrollIntoView({
+    container.scrollIntoView({
         behavior: "smooth",
         block: "start"
     });
@@ -2035,7 +2634,7 @@ function renderSplitResults(data) {
 // INITIALIZE
 // =====================================================
 
-ensureItemAssignments();
+renderPeople();
 
 renderItems();
 
@@ -2043,4 +2642,4 @@ recalculateBill();
 
 updateConfidence();
 
-renderPeople();
+setEntryMode("photo");

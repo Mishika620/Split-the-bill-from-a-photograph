@@ -10,7 +10,9 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>SplitBill — Smart Bill Splitting</title>
+    <title>
+        SplitBill — Smart Bill Splitting
+    </title>
 
     <link
         rel="stylesheet"
@@ -25,23 +27,27 @@
 <div class="app-shell">
 
 
-    <!-- ================================================= -->
-    <!-- SIDEBAR -->
-    <!-- ================================================= -->
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
 
     <aside class="sidebar">
 
         <div class="brand">
 
             <div class="brand-mark">
-                <span>₹</span>
+                ₹
             </div>
 
             <div class="brand-text">
 
-                <strong>SplitBill</strong>
+                <strong>
+                    SplitBill
+                </strong>
 
-                <span>Smart bill splitting</span>
+                <span>
+                    Smart bill splitting
+                </span>
 
             </div>
 
@@ -56,26 +62,11 @@
         <nav class="sidebar-nav">
 
             <a
-                href="#"
+                href="#uploadSection"
                 class="nav-item active"
             >
-
-                <span class="nav-icon">⌂</span>
-
-                <span>Overview</span>
-
-            </a>
-
-
-            <a
-                href="#uploadSection"
-                class="nav-item"
-            >
-
                 <span class="nav-icon">↑</span>
-
-                <span>Upload bill</span>
-
+                <span>Bill</span>
             </a>
 
 
@@ -83,11 +74,8 @@
                 href="#reviewSection"
                 class="nav-item"
             >
-
                 <span class="nav-icon">✓</span>
-
-                <span>Review items</span>
-
+                <span>Review</span>
             </a>
 
 
@@ -95,11 +83,8 @@
                 href="#peopleSection"
                 class="nav-item"
             >
-
                 <span class="nav-icon">♙</span>
-
                 <span>People</span>
-
             </a>
 
         </nav>
@@ -120,8 +105,7 @@
                     </strong>
 
                     <p>
-                        Review every OCR result
-                        before splitting.
+                        Review every bill before splitting.
                     </p>
 
                 </div>
@@ -139,32 +123,34 @@
 
 
 
-    <!-- ================================================= -->
-    <!-- MAIN -->
-    <!-- ================================================= -->
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
 
     <main class="main-content">
 
 
-        <!-- ================================================= -->
-        <!-- TOP BAR -->
-        <!-- ================================================= -->
+        <!-- TOPBAR -->
 
         <header class="topbar">
 
             <div>
 
                 <div class="breadcrumb">
-                    Workspace <span>/</span> Bill Splitter
+                    Workspace
+                    <span>/</span>
+                    Bill Splitter
                 </div>
 
                 <h1>
                     Split your bill,
-                    <span>without the awkward math.</span>
+                    <span>
+                        without the awkward math.
+                    </span>
                 </h1>
 
                 <p>
-                    Photograph → Review → Assign → Split
+                    Photo or Manual Entry → Review → Assign → Split
                 </p>
 
             </div>
@@ -192,14 +178,11 @@
 
 
 
-        <!-- ================================================= -->
-        <!-- WORKFLOW -->
-        <!-- ================================================= -->
+        <!-- =====================================================
+             WORKFLOW
+        ====================================================== -->
 
         <section class="workflow-card">
-
-            <div class="workflow-progress"></div>
-
 
             <div class="workflow-step active">
 
@@ -210,11 +193,11 @@
                 <div>
 
                     <strong>
-                        Upload
+                        Bill
                     </strong>
 
                     <span>
-                        Photograph your bill
+                        Photo or manual entry
                     </span>
 
                 </div>
@@ -238,7 +221,7 @@
                     </strong>
 
                     <span>
-                        Confirm extracted data
+                        Check bill details
                     </span>
 
                 </div>
@@ -262,7 +245,7 @@
                     </strong>
 
                     <span>
-                        Tell us who ate what
+                        Decide who ate what
                     </span>
 
                 </div>
@@ -286,7 +269,7 @@
                     </strong>
 
                     <span>
-                        Get the final amounts
+                        See everyone's share
                     </span>
 
                 </div>
@@ -297,423 +280,757 @@
 
 
 
-        <!-- ================================================= -->
-        <!-- UPLOAD HERO -->
-        <!-- ================================================= -->
+        <!-- =====================================================
+             BILL ENTRY
+        ====================================================== -->
 
         <section
-            class="upload-hero"
+            class="bill-section"
             id="uploadSection"
         >
 
-            <div class="upload-copy">
+            <div class="section-heading">
 
-                <div class="mini-label">
-                    STEP 01 · IMAGE TO DATA
-                </div>
+                <div>
 
-                <h2>
-                    Turn a receipt photo
-                    <br>
-                    into a <em>smart bill.</em>
-                </h2>
-
-                <p>
-                    Our OCR pipeline extracts items, quantities,
-                    prices, taxes and totals from your restaurant
-                    bill. You review everything before the split.
-                </p>
-
-
-                <div class="feature-pills">
-
-                    <span>
-                        ✦ OCR extraction
+                    <span class="mini-label">
+                        STEP 01 · BILL ENTRY
                     </span>
 
-                    <span>
-                        ✦ Confidence scoring
-                    </span>
+                    <h2>
+                        Add your bill
+                    </h2>
 
-                    <span>
-                        ✦ Human review
-                    </span>
+                    <p>
+                        Upload a photograph or enter the bill manually.
+                    </p>
 
                 </div>
 
             </div>
 
 
-            <div class="upload-box">
+            <!-- ENTRY OPTIONS -->
 
-                <div class="upload-box-inner">
+            <div class="entry-options">
 
-                    <div class="receipt-icon">
-                        🧾
+
+                <!-- PHOTO -->
+
+                <button
+                    type="button"
+                    id="uploadModeButton"
+                    class="entry-option active"
+                >
+
+                    <div class="entry-icon">
+                        ↑
                     </div>
 
-                    <h3>
-                        Drop your bill here
-                    </h3>
+                    <div>
+
+                        <strong>
+                            Upload Photo
+                        </strong>
+
+                        <span>
+                            Extract bill using OCR
+                        </span>
+
+                    </div>
+
+                </button>
+
+
+                <!-- MANUAL -->
+
+                <button
+                    type="button"
+                    id="manualModeButton"
+                    class="entry-option"
+                >
+
+                    <div class="entry-icon">
+                        ✎
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Enter Manually
+                        </strong>
+
+                        <span>
+                            No photo required
+                        </span>
+
+                    </div>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PHOTO PANEL
+            ================================================== -->
+
+            <div
+                id="photoEntryPanel"
+                class="entry-panel"
+            >
+
+                <div
+                    class="upload-box"
+                    id="uploadBox"
+                >
+
+                    <div class="upload-box-inner">
+
+                        <div class="receipt-icon">
+                            🧾
+                        </div>
+
+                        <h3>
+                            Choose your bill photograph
+                        </h3>
+
+                        <p>
+                            JPG, PNG or WEBP
+                        </p>
+
+
+                        <input
+                            type="file"
+                            id="billImage"
+                            accept="image/jpeg,image/png,image/jpg,image/webp"
+                            hidden
+                        >
+
+
+                        <button
+                            type="button"
+                            id="uploadButton"
+                            class="primary-button"
+                        >
+                            ↑
+                            Choose bill image
+                        </button>
+
+
+                        <small id="fileStatus">
+                            No file selected
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 MANUAL PANEL
+            ================================================== -->
+
+            <div
+                id="manualEntryPanel"
+                class="entry-panel hidden"
+            >
+
+                <div class="manual-card">
+
+
+                    <div class="manual-header">
+
+                        <div>
+
+                            <span class="mini-label">
+                                MANUAL BILL ENTRY
+                            </span>
+
+                            <h3>
+                                Enter your bill
+                            </h3>
+
+                            <p>
+                                Add each item, then choose optional
+                                tax and service charges.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- ITEMS -->
+
+                    <div class="manual-section">
+
+                        <div class="manual-section-header">
+
+                            <strong>
+                                Bill items
+                            </strong>
+
+                            <span>
+                                Quantity × unit price
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            id="manualItems"
+                            class="manual-items"
+                        >
+                        </div>
+
+
+                        <button
+                            type="button"
+                            id="manualAddItem"
+                            class="secondary-button"
+                        >
+                            + Add item
+                        </button>
+
+                    </div>
+
+
+
+                    <!-- CHARGES -->
+
+                    <div class="manual-section charges-section">
+
+                        <div class="manual-section-header">
+
+                            <strong>
+                                Additional charges
+                            </strong>
+
+                            <span>
+                                Optional
+                            </span>
+
+                        </div>
+
+
+                        <!-- TAX -->
+
+                        <div class="charge-row">
+
+                            <label>
+
+                                <input
+                                    type="checkbox"
+                                    id="manualTaxEnabled"
+                                >
+
+                                <span>
+                                    Add Tax / GST
+                                </span>
+
+                            </label>
+
+
+                            <div class="charge-input">
+
+                                <span>
+                                    ₹
+                                </span>
+
+                                <input
+                                    type="number"
+                                    id="manualTax"
+                                    min="0"
+                                    step="0.01"
+                                    value="0"
+                                    disabled
+                                >
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- SERVICE -->
+
+                        <div class="charge-row">
+
+                            <label>
+
+                                <input
+                                    type="checkbox"
+                                    id="manualServiceEnabled"
+                                >
+
+                                <span>
+                                    Add Service Charge
+                                </span>
+
+                            </label>
+
+
+                            <div class="charge-input">
+
+                                <span>
+                                    ₹
+                                </span>
+
+                                <input
+                                    type="number"
+                                    id="manualService"
+                                    min="0"
+                                    step="0.01"
+                                    value="0"
+                                    disabled
+                                >
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- DISCOUNT -->
+
+                        <div class="charge-row">
+
+                            <label>
+
+                                <span>
+                                    Discount
+                                </span>
+
+                            </label>
+
+
+                            <div class="charge-input">
+
+                                <span>
+                                    ₹
+                                </span>
+
+                                <input
+                                    type="number"
+                                    id="manualDiscount"
+                                    min="0"
+                                    step="0.01"
+                                    value="0"
+                                >
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- SUMMARY -->
+
+                    <div class="manual-summary">
+
+                        <div>
+
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <strong id="manualSubtotal">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Tax / GST
+                            </span>
+
+                            <strong id="manualTaxSummary">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Service Charge
+                            </span>
+
+                            <strong id="manualServiceSummary">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <span>
+                                Discount
+                            </span>
+
+                            <strong
+                                id="manualDiscountSummary"
+                                class="discount-value"
+                            >
+                                -₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="manual-total">
+
+                            <span>
+                                Total
+                            </span>
+
+                            <strong id="manualTotal">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="manual-actions">
+
+                        <button
+                            type="button"
+                            id="manualContinue"
+                            class="primary-button"
+                        >
+                            Continue to Review
+                            →
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =====================================================
+             REVIEW
+        ====================================================== -->
+
+        <section
+            id="reviewSection"
+            class="review-section"
+        >
+
+            <div class="section-title-row">
+
+                <div>
+
+                    <span class="mini-label">
+                        STEP 02 · HUMAN REVIEW
+                    </span>
+
+                    <h2>
+                        Extracted bill details
+                    </h2>
 
                     <p>
-                        or choose an image from your device
+                        Check and edit everything before splitting.
                     </p>
 
+                </div>
 
-                    <input
-                        type="file"
-                        id="billImage"
-                        accept="image/jpeg,image/png,image/jpg,image/webp"
-                        hidden
-                    >
+
+                <div class="confidence-card">
+
+                    <div class="confidence-ring">
+                        <span class="confidence-dot"></span>
+                    </div>
+
+                    <div>
+
+                        <small>
+                            Overall confidence
+                        </small>
+
+                        <strong id="overallConfidence">
+                            0%
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ITEMS -->
+
+            <section class="data-card">
+
+                <div class="data-card-header">
+
+                    <div>
+
+                        <h3>
+                            Bill items
+                        </h3>
+
+                        <span id="itemCount">
+                            0 items
+                        </span>
+
+                    </div>
 
 
                     <button
                         type="button"
-                        id="uploadButton"
-                        class="primary-button"
+                        id="addItemButton"
+                        class="ghost-button"
                     >
-
-                        <span>↑</span>
-
-                        Choose bill image
-
+                        + Add item
                     </button>
 
+                </div>
 
-                    <small>
-                        JPG · PNG · WEBP
-                    </small>
+
+                <div class="table-container">
+
+                    <table class="items-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    ITEM
+                                </th>
+
+                                <th>
+                                    QTY
+                                </th>
+
+                                <th>
+                                    UNIT PRICE
+                                </th>
+
+                                <th>
+                                    TOTAL
+                                </th>
+
+                                <th>
+                                    ATE BY
+                                </th>
+
+                                <th>
+                                    CONFIDENCE
+                                </th>
+
+                                <th>
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody id="itemsBody">
+                        </tbody>
+
+                    </table>
 
                 </div>
 
-            </div>
 
-        </section>
+                <div class="table-bottom">
 
-
-
-        <!-- ================================================= -->
-        <!-- REVIEW HEADER -->
-        <!-- ================================================= -->
-
-        <div
-            class="section-title-row"
-            id="reviewSection"
-        >
-
-            <div>
-
-                <div class="mini-label">
-                    STEP 02 · HUMAN REVIEW
-                </div>
-
-                <h2>
-                    Extracted bill details
-                </h2>
-
-                <p>
-                    Check the values detected from your photograph.
-                    Everything is editable.
-                </p>
-
-            </div>
-
-
-            <div class="confidence-card">
-
-                <div class="confidence-ring">
-
-                    <span class="confidence-dot"></span>
+                    <span>
+                        ✦ All values are editable.
+                    </span>
 
                 </div>
 
-                <div>
+            </section>
 
-                    <small>
-                        Overall confidence
-                    </small>
 
-                    <strong id="overallConfidence">
-                        94%
-                    </strong>
+
+            <!-- SUMMARY -->
+
+            <section class="summary-grid">
+
+
+                <div class="summary-card">
+
+                    <div class="card-heading">
+
+                        <div>
+
+                            <span>
+                                BILL OVERVIEW
+                            </span>
+
+                            <h3>
+                                Amount breakdown
+                            </h3>
+
+                        </div>
+
+                        <div class="card-heading-icon">
+                            ₹
+                        </div>
+
+                    </div>
+
+
+                    <div class="amount-list">
+
+                        <div class="amount-row">
+
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <strong id="subtotal">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="amount-row">
+
+                            <span>
+                                Tax
+                            </span>
+
+                            <strong id="tax">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="amount-row">
+
+                            <span>
+                                Service charge
+                            </span>
+
+                            <strong id="serviceCharge">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+
+                        <div class="amount-row">
+
+                            <span>
+                                Discount
+                            </span>
+
+                            <strong
+                                id="discount"
+                                class="discount-value"
+                            >
+                                -₹0.00
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="total-box">
+
+                        <div>
+
+                            <span>
+                                FINAL TOTAL
+                            </span>
+
+                            <strong id="total">
+                                ₹0.00
+                            </strong>
+
+                        </div>
+
+                        <div class="total-arrow">
+                            →
+                        </div>
+
+                    </div>
 
                 </div>
 
-            </div>
-
-        </div>
 
 
+                <!-- VALIDATION -->
 
-        <!-- ================================================= -->
-        <!-- ITEMS CARD -->
-        <!-- ================================================= -->
+                <div
+                    id="validationCard"
+                    class="validation-card"
+                >
 
-        <section class="data-card">
+                    <div class="validation-top">
 
-            <div class="data-card-header">
+                        <div class="validation-symbol">
+                            ✓
+                        </div>
 
-                <div>
+                        <span>
+                            ARITHMETIC CHECK
+                        </span>
 
-                    <h3>
-                        Detected items
+                    </div>
+
+
+                    <h3 id="validationTitle">
+                        Ready for validation
                     </h3>
 
-                    <span id="itemCount">
-                        0 items detected
-                    </span>
+
+                    <p id="validationMessage">
+                        Validate the bill before splitting.
+                    </p>
+
+
+                    <button
+                        type="button"
+                        id="validateButton"
+                        class="validation-button"
+                    >
+                        Validate bill
+                        →
+                    </button>
 
                 </div>
 
-
-                <button
-                    type="button"
-                    id="addItemButton"
-                    class="ghost-button"
-                >
-
-                    + Add item
-
-                </button>
-
-            </div>
-
-
-            <div class="table-container">
-
-                <table class="items-table">
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                ITEM
-                            </th>
-
-                            <th>
-                                QTY
-                            </th>
-
-                            <th>
-                                UNIT PRICE
-                            </th>
-
-                            <th>
-                                TOTAL
-                            </th>
-
-                            <th>
-                                ATE BY
-                            </th>
-
-                            <th>
-                                CONFIDENCE
-                            </th>
-
-                            <th>
-                                &nbsp;
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody id="itemsBody">
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-
-            <div class="table-bottom">
-
-                <span>
-                    ✦ Values are extracted automatically
-                    and can be corrected before splitting.
-                </span>
-
-            </div>
+            </section>
 
         </section>
 
 
 
-        <!-- ================================================= -->
-        <!-- SUMMARY GRID -->
-        <!-- ================================================= -->
-
-        <section class="summary-grid">
-
-
-            <!-- BILL SUMMARY -->
-
-            <div class="summary-card">
-
-                <div class="card-heading">
-
-                    <div>
-
-                        <span>
-                            BILL OVERVIEW
-                        </span>
-
-                        <h3>
-                            Amount breakdown
-                        </h3>
-
-                    </div>
-
-                    <div class="card-heading-icon">
-                        ₹
-                    </div>
-
-                </div>
-
-
-                <div class="amount-list">
-
-                    <div class="amount-row">
-
-                        <span>
-                            Subtotal
-                        </span>
-
-                        <strong id="subtotal">
-                            ₹750.00
-                        </strong>
-
-                    </div>
-
-
-                    <div class="amount-row">
-
-                        <span>
-                            Tax
-                        </span>
-
-                        <strong id="tax">
-                            ₹75.00
-                        </strong>
-
-                    </div>
-
-
-                    <div class="amount-row">
-
-                        <span>
-                            Service charge
-                        </span>
-
-                        <strong id="serviceCharge">
-                            ₹30.00
-                        </strong>
-
-                    </div>
-
-
-                    <div class="amount-row">
-
-                        <span>
-                            Discount
-                        </span>
-
-                        <strong
-                            id="discount"
-                            class="discount-value"
-                        >
-                            -₹0.00
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                <div class="total-box">
-
-                    <div>
-
-                        <span>
-                            FINAL TOTAL
-                        </span>
-
-                        <strong id="total">
-                            ₹855.00
-                        </strong>
-
-                    </div>
-
-                    <div class="total-arrow">
-                        →
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- VALIDATION -->
-
-            <div
-                id="validationCard"
-                class="validation-card"
-            >
-
-                <div class="validation-top">
-
-                    <div class="validation-symbol">
-                        ✓
-                    </div>
-
-                    <span>
-                        ARITHMETIC CHECK
-                    </span>
-
-                </div>
-
-
-                <h3 id="validationTitle">
-                    Ready for validation
-                </h3>
-
-
-                <p id="validationMessage">
-                    Check whether the extracted item totals,
-                    subtotal and printed final amount are
-                    mathematically consistent.
-                </p>
-
-
-                <button
-                    type="button"
-                    id="validateButton"
-                    class="validation-button"
-                >
-
-                    Validate bill
-
-                    <span>
-                        →
-                    </span>
-
-                </button>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- ================================================= -->
-        <!-- PEOPLE SECTION -->
-        <!-- ================================================= -->
+        <!-- =====================================================
+             PEOPLE
+        ====================================================== -->
 
         <section
             class="people-section"
@@ -724,31 +1041,39 @@
 
                 <div>
 
-                    <div class="mini-label">
+                    <span class="mini-label">
                         STEP 03 · ASSIGNMENT
-                    </div>
+                    </span>
 
                     <h2>
                         Who shared the meal?
                     </h2>
 
                     <p>
-                        Add everyone at the table, then assign
-                        each item to the people who consumed it.
+                        Add everyone at the table and assign each item.
                     </p>
 
                 </div>
 
 
-                <button
-                    type="button"
-                    id="addPersonButton"
-                    class="primary-button"
-                >
+                <div class="member-add">
 
-                    + Add member
+                    <input
+                        type="text"
+                        id="memberNameInput"
+                        placeholder="Enter member name"
+                        maxlength="40"
+                    >
 
-                </button>
+                    <button
+                        type="button"
+                        id="addPersonButton"
+                        class="primary-button"
+                    >
+                        + Add member
+                    </button>
+
+                </div>
 
             </div>
 
@@ -757,7 +1082,6 @@
                 id="peopleList"
                 class="people-list"
             >
-
             </div>
 
 
@@ -774,11 +1098,9 @@
                     </strong>
 
                     <p>
-                        Individual items are charged to the
-                        people who consumed them. Shared items
-                        are divided between everyone assigned.
-                        Tax and service charge will follow each
-                        person's actual consumption.
+                        Shared items are divided equally between
+                        assigned people. Tax and service charge are
+                        distributed according to actual consumption.
                     </p>
 
                 </div>
@@ -789,9 +1111,9 @@
 
 
 
-        <!-- ================================================= -->
-        <!-- FINAL ACTION BAR -->
-        <!-- ================================================= -->
+        <!-- =====================================================
+             FINAL ACTION
+        ====================================================== -->
 
         <section class="final-action">
 
@@ -808,7 +1130,7 @@
                     </strong>
 
                     <span>
-                        Review your items and assignments first.
+                        Review items and assignments first.
                     </span>
 
                 </div>
@@ -823,9 +1145,7 @@
                     id="recalculateButton"
                     class="ghost-button large"
                 >
-
                     ↻ Recalculate
-
                 </button>
 
 
@@ -834,13 +1154,8 @@
                     id="splitButton"
                     class="primary-button large"
                 >
-
                     Split bill
-
-                    <span>
-                        →
-                    </span>
-
+                    →
                 </button>
 
             </div>
@@ -849,9 +1164,19 @@
 
 
 
-        <!-- ================================================= -->
+        <!-- =====================================================
+             SPLIT RESULTS
+        ====================================================== -->
+
+        <section
+            id="splitResults"
+            class="split-results-section hidden"
+        >
+        </section>
+
+
+
         <!-- FOOTER -->
-        <!-- ================================================= -->
 
         <footer class="page-footer">
 
@@ -866,16 +1191,13 @@
 
         </footer>
 
-
     </main>
 
 </div>
 
 
 
-<!-- ================================================= -->
 <!-- TOAST -->
-<!-- ================================================= -->
 
 <div
     id="toast"
@@ -884,11 +1206,9 @@
 </div>
 
 
-
 <script
     src="/static/js/app.js"
 ></script>
-
 
 </body>
 
